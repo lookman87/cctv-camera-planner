@@ -71,10 +71,10 @@ table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 .pill{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--p,.7));display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;border-radius:7px;color:#fff;font:600 11px/1 system-ui;white-space:nowrap;box-shadow:0 0 0 1.5px #fff,0 1px 4px rgba(0,0,0,.5);opacity:.94}
 .pill.srv{background:#1e293b;padding:4px 10px 4px 7px;font-size:12px;border-radius:9px;box-shadow:0 0 0 1.5px #fde68a,0 1px 4px rgba(0,0,0,.5)}
 .pill.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px #00e5ff}
-#hint{position:absolute;left:64px;top:10px;right:64px;z-index:1200;pointer-events:none;display:flex}
-#hint span{background:rgba(20,22,26,.78);color:#f3f2ee;font-size:13px;line-height:1.35;padding:5px 10px;border-radius:8px;max-width:100%}
+#hint{display:flex;margin:6px 2px 0}
+#hint span{color:var(--mut,#6b6f76);font-size:13px;line-height:1.35;max-width:100%}
 #hint span:empty{display:none}
-body.present #hint{display:none}
+body.present #hint,body.nohint #hint{display:none}
 #ctxgrp button{font-size:13px!important;padding:3px 8px!important;border-color:var(--bd)!important}
 #ctxgrp #fin,#ctxgrp #sclok{background:var(--acc);color:#fff}
 #plegend{display:none;position:absolute;right:14px;bottom:30px;z-index:1200;background:rgba(20,22,26,.82);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6;backdrop-filter:blur(4px)}
@@ -173,7 +173,7 @@ body.present #vname{pointer-events:none;border-color:transparent;background:tran
 #mapwrap #ctxrow:not(:has(>:not([hidden]))){display:none}
 #ctxrow #ctxgrp{display:contents}
 #ctxrow select,#ctxrow input,#ctxrow button{background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh)}
-#mapwrap #hint{top:56px;left:96px}
+
 body.present #mapwrap #toolrow,body.present #mapwrap #ctxrow{display:none!important}
 body.printing #toolrow,body.printing #ctxrow{display:none!important}
 .leaflet-bottom.leaflet-left .leaflet-control-scale{margin-left:96px}
@@ -242,7 +242,7 @@ body.rptprint #rpt{display:block;font:12px/1.35 system-ui,sans-serif;color:#000;
 <select id="fov" hidden><option value="15">15&deg;</option><option value="30">30&deg; (LPR)</option><option value="45">45&deg;</option><option value="79">79&deg; (4 mm)</option><option value="33">33&deg; (12 mm)</option><option value="60">60&deg;</option><option value="90">90&deg;</option><option value="107">107&deg;</option><option value="110">110&deg;</option><option value="120">120&deg;</option><option value="180">180&deg;</option><option value="360">360&deg;</option></select><input type="text" id="cname" placeholder="IDF / Server room name" hidden style="width:130px"><select id="cabsel" hidden title="Which cabinet this device connects to"></select><select id="cshape" hidden title="Shape"><option value="r">Rectangle</option><option value="o">Round / oval</option></select><select id="csz" hidden><option value="1.52,1.52">5 x 5 ft</option><option value="1.83,1.83" selected>6 x 6 ft</option><option value="1.83,2.44">6 x 8 ft</option><option value="2.44,2.44">8 x 8 ft</option><option value="2.44,3.05">8 x 10 ft</option><option value="3.05,3.05">10 x 10 ft</option></select><span id="sclbox" hidden>Real distance between the 2 points: <input id="sclv" type="number" step="any" min="0" style="width:90px"> <select id="sclu"><option value="ft">ft</option><option value="m">m</option></select> <button id="sclok">Apply scale</button> <button id="sclx">Cancel</button></span><select id="fcol" hidden><option value="#111111">Black fence</option><option value="#8B5A2B">Brown fence</option><option value="#8a8a8a">Gray fence</option></select><button id="fin" hidden>Finish fence</button><button id="cnl" hidden>Cancel fence</button><button id="ar">Select area</button><button id="ms">Select several</button><button id="cp" hidden>Copy</button><button id="ps" hidden>Paste</button><button id="sw" hidden>Switch type</button><button id="del" hidden>Delete</button>
 </span>
 </div>
-<div id="map"></div><div id="plegend"></div><div id="hint"><span id="selt"></span></div></div>
+<div id="map"></div><div id="plegend"></div></div><div id="hint"><span id="selt"></span></div>
 <div id="psum"></div>
 <div class="info" id="info"></div>
 <div id="toast"></div>
@@ -1010,7 +1010,7 @@ cr.insertBefore(hb,cr.firstChild);
 $("doriBtn").onclick=function(){doriOn=!doriOn;refresh()};
 var fg=$("fgrp");
 var lb=document.createElement("button");lb.id="layBtn";lb.textContent="Layers";lb.title="Show or hide parts of the drawing";fg.insertBefore(lb,$("fit"));
-var rb=document.createElement("button");rb.id="rptBtn";rb.textContent="Report";rb.title="Estimate, network, storage, power and client report";fg.insertBefore(rb,$("fit"));
+var rb=document.createElement("button");rb.id="rptBtn";rb.textContent="Report";rb.title="Estimate, network, storage, power and client report";fg.insertBefore(rb,$("fit"));var hb=document.createElement("button");hb.id="hintBtn";hb.title="Show or hide the help text on the map";function hset(v){document.body.classList.toggle("nohint",!v);hb.textContent=v?"Hints: on":"Hints: off";try{localStorage.setItem("pp-hint",v?"1":"0")}catch(e){}}hb.onclick=function(){hset(document.body.classList.contains("nohint"))};fg.insertBefore(hb,$("fit"));var hv=true;try{hv=localStorage.getItem("pp-hint")!=="0"}catch(e){}hset(hv);
 var lm=document.createElement("div");lm.id="laymenu";lm.hidden=true;document.body.appendChild(lm);
 var LN=[["cam","Cameras (icons)"],["zone","Coverage zones"],["tags","Camera numbers (C01, C02...)"],["cat6","Cat6 cables"],["fib","Fiber"],["v","120 V cables"]];
 function layRender(){lm.innerHTML=LN.map(function(x){return'<label><input type="checkbox" data-l="'+x[0]+'"'+(LAY[x[0]]?" checked":"")+'> '+x[1]+'</label>'}).join("")}
