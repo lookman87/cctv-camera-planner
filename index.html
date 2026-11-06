@@ -75,6 +75,15 @@ table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 #hint span{color:var(--mut,#6b6f76);font-size:13px;line-height:1.35;max-width:100%}
 #hint span:empty{display:none}
 body.present #hint,body.nohint #hint{display:none}
+body.printing.pr-nosum #psum{display:none!important}
+body.printing.pr-nocam #psum .camlist{display:none!important}
+body.printing.pr-leg #plegend.has{display:block!important}
+#prtdlg{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+#prtdlg[hidden]{display:none}
+#prtdlg .bx{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;width:340px;max-width:92vw;box-shadow:var(--sh)}
+#prtdlg h3{margin:0 0 10px;font-size:16px}#prtdlg label{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+#prtdlg .ft{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
 #ctxgrp button{font-size:13px!important;padding:3px 8px!important;border-color:var(--bd)!important}
 #ctxgrp #fin,#ctxgrp #sclok{background:var(--acc);color:#fff}
 #plegend{display:none;position:absolute;right:14px;bottom:30px;z-index:1200;background:rgba(20,22,26,.82);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.6;backdrop-filter:blur(4px)}
@@ -1142,5 +1151,21 @@ window.rptHead=function(){var lg="";try{lg=localStorage.getItem("pp-logo")||""}c
 document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(!pn.hidden){pn.hidden=true;e.stopPropagation()}else if(!nb.hidden){nbSave();nb.hidden=true;refresh()}lm.hidden=true},true);
 refresh();
 })();
+</script>
+<script>
+(function(){var b=document.getElementById("pdf");if(!b)return;var orig=b.onclick;
+var O={sum:1,cam:1,leg:0};try{Object.assign(O,JSON.parse(localStorage.getItem("pp-prt")||"{}"))}catch(e){}
+var d=document.createElement("div");d.id="prtdlg";d.hidden=true;
+d.innerHTML='<div class="bx"><h3>What to include in the PDF</h3><label><input type="checkbox" id="po_sum"> Summary panel under the map</label><label><input type="checkbox" id="po_cam"> Camera and lens list in the summary</label><label><input type="checkbox" id="po_leg"> Cable length legend on the map</label><div class="ft"><button id="po_x">Cancel</button><button id="po_ok" class="pri">Save PDF</button></div></div>';
+document.body.appendChild(d);var $=function(i){return document.getElementById(i)};
+function show(){$("po_sum").checked=!!O.sum;$("po_cam").checked=!!O.cam;$("po_leg").checked=!!O.leg;d.hidden=false}
+$("po_x").onclick=function(){d.hidden=true};
+d.addEventListener("click",function(e){if(e.target===d)d.hidden=true});
+$("po_ok").onclick=function(){O.sum=$("po_sum").checked?1:0;O.cam=$("po_cam").checked?1:0;O.leg=$("po_leg").checked?1:0;try{localStorage.setItem("pp-prt",JSON.stringify(O))}catch(e){}d.hidden=true;
+var c=document.body.classList;c.toggle("pr-nosum",!O.sum);c.toggle("pr-nocam",!O.cam);c.toggle("pr-leg",!!O.leg);var pl=$("plegend");if(pl&&pl.innerHTML)pl.classList.add("has");
+setTimeout(function(){orig.call(b)},50)};
+window.addEventListener("afterprint",function(){var c=document.body.classList;c.remove("pr-nosum","pr-nocam","pr-leg")});
+b.onclick=function(e){if(e&&e.preventDefault)e.preventDefault();show()};
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!d.hidden){d.hidden=true;e.stopPropagation()}},true)})();
 </script>
 </body></html>
