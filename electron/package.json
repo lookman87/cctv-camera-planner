@@ -1,0 +1,29 @@
+{
+  "name": "cctv-camera-planner",
+  "version": "1.0.0",
+  "description": "CCTV camera planner: poles, cameras, field of view, DORI, cabling and estimates",
+  "author": "DAGTECH Incorporated",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "prepare-app": "node ../scripts/prepare-electron.js",
+    "start": "npm run prepare-app && electron .",
+    "dist": "npm run prepare-app && electron-builder --win portable --x64"
+  },
+  "dependencies": {
+    "leaflet": "1.9.4",
+    "pdfjs-dist": "3.11.174"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.dagtech.cctvcameraplanner",
+    "productName": "CCTV Camera Planner",
+    "directories": {"output": "dist"},
+    "files": ["main.js", "preload.js", "index.html", "lib/**", "package.json", "build/icon.png"],
+    "win": {"target": [{"target": "portable", "arch": ["x64"]}], "icon": "build/icon.ico", "signAndEditExecutable": false},
+    "portable": {"artifactName": "CCTV-Camera-Planner-${version}.exe"}
+  }
+}
