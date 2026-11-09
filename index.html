@@ -306,11 +306,15 @@ function off(p,d,deg){var r=deg*Math.PI/180;return L.latLng(p.lat+d*Math.cos(r)/
 function bearing(p,q){var y=(q.lat-p.lat)*111320,x=(q.lng-p.lng)*111320*Math.cos(p.lat*Math.PI/180);return(Math.atan2(x,y)*180/Math.PI+360)%360}
 function camById(i){for(var k=0;k<cams.length;k++)if(cams[k].id===i)return cams[k];return null}
 function hasCable(i){return cables.some(function(k){return k.t!=="v"&&(k.a===i||k.b===i)})}
-function nearest(p){var best=office,bd=office?ft(office,p):1e12;cabs.forEach(function(c){var d=ft(c,p);if(d<bd){bd=d;best=c}});poles.forEach(function(q){if(q.e&&q!==p){var d=ft(q,p);if(d<bd){bd=d;best=q}}});return best?{q:best,d:bd}:null}
+var FED={};
+function fedSet(){var S={},seen={},q=[];xfs.forEach(function(x){q.push("t"+x.id);seen["t"+x.id]=1});poles.forEach(function(p){if(p.e){q.push(p.id);seen[p.id]=1}});
+while(q.length){var c=q.pop();cables.forEach(function(k){if(k.t!=="v")return;var o=k.a===c?k.b:k.b===c?k.a:null;if(o===null||seen[o])return;seen[o]=1;q.push(o);if(typeof o==="number")S[o]=1})}return S}
+function isPw(p){return !!(p.e||FED[p.id])}
+function nearest(p){var best=office,bd=office?ft(office,p):1e12;cabs.forEach(function(c){var d=ft(c,p);if(d<bd){bd=d;best=c}});poles.forEach(function(q){if(isPw(q)&&q!==p){var d=ft(q,p);if(d<bd){bd=d;best=q}}});xfs.forEach(function(x){var d=ft(x,p);if(d<bd){bd=d;best=x}});return best?{q:best,d:bd}:null}
 function icon(n,id){
 if(id===0)return L.divIcon({className:"",html:'<div class="off" style="width:26px;height:26px">Office</div>',iconSize:[26,26],iconAnchor:[13,13]});
-var c=(n.e?"pole e":"pole p")+((sel&&sel.t==="p"&&sel.id===id)||psel.indexOf(id)>=0?" sel":"")+(start===id?" st":""),z=n.e?26:20;
-var inner=n.e?'<svg width="14" height="14" viewBox="-7 -8 14 16"><polygon points="2,-8 -4,1 0,1 -2,8 4,-1 0,-1" fill="#fff"/></svg>':"";
+var c=(isPw(n)?"pole e":"pole p")+((sel&&sel.t==="p"&&sel.id===id)||psel.indexOf(id)>=0?" sel":"")+(start===id?" st":""),z=isPw(n)?26:20;
+var inner=isPw(n)?'<svg width="14" height="14" viewBox="-7 -8 14 16"><polygon points="2,-8 -4,1 0,1 -2,8 4,-1 0,-1" fill="#fff"/></svg>':"";
 return L.divIcon({className:"",html:'<div class="'+c+'" style="width:'+z+'px;height:'+z+'px">'+inner+'</div>',iconSize:[z,z],iconAnchor:[z/2,z/2]})}
 function onNode(id,e){L.DomEvent.stopPropagation(e);
 if(tool==="c"||tool==="f"||tool==="v"){sel=null;
@@ -462,7 +466,7 @@ function drawLines(){lines.clearLayers();cams.forEach(sector);aps.forEach(drawAp
 if(draft.length){var dp=draft.map(function(p){return L.latLng(p.lat,p.lng)});if(dp.length>1)L.polyline(dp,{color:"#FFB400",weight:3,dashArray:"6 5",interactive:false}).addTo(lines);
 dp.forEach(function(q){L.circleMarker(q,{radius:5,color:"#000",weight:1,fillColor:"#FFB400",fillOpacity:1,interactive:false}).addTo(lines)})}
 var nva=0,lva=0,nc=0,nf=0,nv=0,lv=0,over=0,lc=0,lf=0;
-poles.forEach(function(p){if(p.e||hasCable(p.id))return;var n=nearest(p);if(!n)return;var bad=n.d>MAXFT;nc++;lc+=n.d;if(bad)over++;
+poles.forEach(function(p){if(isPw(p)||hasCable(p.id))return;var n=nearest(p);if(!n)return;var bad=n.d>MAXFT;nc++;lc+=n.d;if(bad)over++;
 if(!LAY.cat6)return;seg(p,n.q,bad?"#e03131":"#378ADD",3,"7 5",0);if(bad||(sel&&sel.t==="p"&&sel.id===p.id))label(p,n.q,n.d,bad)});
 cables.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b),bad=(k.t==="c"&&d>MAXFT)||(k.t==="v"&&k.air&&d>MAX120);
 if(k.t==="v"){if(k.air){nva++;lva+=d}else{nv++;lv+=d}}else if(k.t==="f"){nf++;lf+=d}else{nc++;lc+=d;if(bad)over++}
@@ -507,7 +511,7 @@ if(pasting){t.textContent="Tap the map where to paste the copied group."}
 else if(area){t.textContent="Select area: drag a box on the map around the poles and cameras you want."}
 else if(hasSel()&&(multi||msel.length>1||psel.length||bsel.length||fsel.length||apsel.length||xsel.length)){var pa=[];if(psel.length)pa.push(psel.length+" pole"+(psel.length>1?"s":""));if(msel.length)pa.push(msel.length+" camera"+(msel.length>1?"s":""));if(bsel.length)pa.push(bsel.length+" gate"+(bsel.length>1?"s":""));if(fsel.length)pa.push(fsel.length+" fence/wall"+(fsel.length>1?"s":""));if(apsel.length)pa.push(apsel.length+" AP"+(apsel.length>1?"s":""));if(xsel.length)pa.push(xsel.length+" cubicle"+(xsel.length>1?"s":""));t.textContent="Selected: "+pa.join(", ")+". Tap Copy, then Paste and tap the map."}
 else if(multi){t.textContent="Select several: tap cameras to pick them."}
-else if(sp){t.textContent="Selected: "+(sp.e?"pole with power":"plain pole");b.textContent=sp.e?"Make plain pole":"Add power"}
+else if(sp){t.textContent="Selected: "+(sp.e?"pole with power":isPw(sp)?"pole with power (fed by a 120 V cable from a transformer)":"plain pole");b.textContent=sp.e?"Make plain pole":"Add power"}
 else if(sel&&sel.t==="fib"){var ff=fibs.filter(function(g){return g.id===sel.id})[0];t.textContent="Selected: fiber between cabinets, "+(ff?Math.round(fibLen(ff)):0)+" ft (with slack and drops). Press Delete to remove."}
 else if(tool==="f"&&mode==="plan"){t.textContent=fstart!==null?"Now tap the second cabinet to connect the fiber.":"Fiber: tap one IDF cabinet, then another to connect them."}
 else if(ssrv){var ln=SL.filter(function(k){return k.srv===ssrv}).length;t.textContent="Selected: Server Room (main point where all IDF cabinets connect). "+ln+" cabinet link"+(ln===1?"":"s")+" by fiber. Drag it to move."}
@@ -519,7 +523,7 @@ else if(sw0){t.textContent="Selected: "+(sw0.k==="wall"?"wall":"fence")+", "+Mat
 else if(sb0){t.textContent="Selected: barrier gate, arm "+Math.round(sb0.len*FTM)+" ft. Drag the white dot to turn it."}
 else if(sa&&sa.n===4){t.textContent="Selected: 4-camera unit (counts as 4), "+sa.fov+" degrees each, range "+Math.round(sa.r*FTM)+" ft. Drag the white dot to turn all four or change range."}
 else if(sa){t.textContent="Selected: "+CAMS[camKey(sa)].nm+" camera, "+(sa.fov===360?"360 degrees":sa.fov+" degrees")+", range "+Math.round(sa.r*FTM)+" ft. Drag the white dot to turn it or change range. "+CAMS[camKey(sa)].inf}
-else if(sel&&sel.t==="xf"){t.textContent="Selected: 480 V to 120 V transformer. Use the 120 V tool to run power cable from it, 150 ft max on air. Drag to move."}
+else if(sel&&sel.t==="xf"){t.textContent="Selected: 480 V to 120 V transformer. It is a power source like a powered pole. Use the 120 V or 120 V air tool to run power from it, 150 ft max on air. Poles on that cable get power, and cameras there need no Cat6. Drag to move."}
 else if(sc){t.textContent="Selected: "+(sc.t==="v"?(sc.air?"120 V aerial":"120 V power"):sc.t==="f"?"fiber":"Cat6")+" cable, "+Math.round(ft(node(sc.a),node(sc.b)))+" ft"+(sc.t==="v"&&sc.air&&ft(node(sc.a),node(sc.b))>MAX120?". No more than 150 ft on air: put at least "+(Math.ceil(ft(node(sc.a),node(sc.b))/MAX120)-1)+" pole(s) in between (click the cable with the Pole tool)":"");b.textContent=sc.t==="v"?(sc.air?"Change to Cat6":"Change to 120 V aerial"):sc.t==="f"?"Change to 120 V":"Change to fiber"}
 else t.textContent=CAMS[tool]?"Tap a pole or the map to put a "+CAMS[tool].nm+" camera. "+CAMS[tool].inf+" Drag the white dot to aim it.":tool==="r"?(rstart?"Now tap the end point.":"Ruler: tap the start point, then the end point. The distance shows in ft and m."):tool==="s"?(scl&&scl.b?"Type the real distance between the two red points and press Apply scale.":scl?"Now tap the second point.":"Set scale: tap two points on the plan that you know the real distance between (a wall, a door, a dimension line)."):tool==="v"?(start!==null?"Now tap the second pole or point to run the "+(vair?"aerial ":"")+"120 V cable.":(vair?"120 V aerial cable, 150 ft max: tap one pole or point, then another.":"120 V power cable: tap one pole or point, then another.")):tool==="z"?"Tap to place a 480 V to 120 V transformer. Then use the 120 V tool to run cable from it. Each 120 V run can be 150 ft at most on air.":tool==="y"?"Tap to place the Server Room. Fiber is counted from every IDF cabinet to the nearest Server Room (20 ft added at each end).":tool==="n"?"Tap to place a IDF cabinet. Cable is counted from every UniFi AP and free camera to the nearest cabinet.":tool==="i"?"Tap to place a UniFi AP. Drag the white dot to change its coverage radius.":tool==="x"?"Tap to place an office cubicle. Choose the size in the list.":tool==="w"?(draft.length?"Tap to add the next point. Tap Finish "+(mode==="plan"?"wall":"fence")+" when done.":"Tap the map to start the "+(mode==="plan"?"wall":"fence")+", then tap each corner."):tool==="b"?"Tap the map where the barrier base stands. Then drag the white dot to turn the arm.":tool==="h"?"Hand mode: drag to move the map, pinch or scroll to zoom. Items stay in place.":tool==="m"?"Drag items to move them. Drag empty space or hold Space and drag to move the map. Drag the white dot to turn or resize.":tool==="p"||tool==="e"?"Tap the map to add a pole. Tap on a cable to put the pole into it and split the cable. Drag an existing pole to move it.":tool==="o"?"Tap the map to place the office. Drag items to move them.":start!==null?"Now tap the second pole.":(tool==="c"||tool==="f"?"Tap the first pole or the office.":tool==="o"?"Tap the map where the office container is.":"Tap the map to add. Tap a pole or cable to select it.")}
 
@@ -710,7 +714,7 @@ function updSum(){var tcm=0;cams.forEach(function(c){tcm+=c.n||1});var cat=0,nc=
 var p=[];p.push("<b>"+tcm+"</b> cameras");if(aps.length)p.push("<b>"+aps.length+"</b> AP");if(cabs.length)p.push("<b>"+cabs.length+"</b> IDF");if(srvs.length)p.push("<b>"+srvs.length+"</b> Server room");if(nc)p.push("Cat6 <b>"+nc+"</b> cables, <b>"+Math.round(cat)+"</b> ft");if(fb)p.push("Fiber <b>"+Math.round(fb)+"</b> ft");var pv=0,pvn=0,o120=0;cables.forEach(function(k){if(k.t==="v"){var a1=node(k.a),b1=node(k.b);if(a1&&b1){var d1=ft(a1,b1);pv+=d1;pvn++;if(k.air&&d1>MAX120)o120++}}});if(pvn)p.push("120 V <b>"+Math.round(pv)+"</b> ft");if(ov)p.push('<span class="warn">'+ov+" over 300 ft</span>");if(xfs.length)p.push("<b>"+xfs.length+"</b> transformer");if(o120)p.push('<span class="warn">'+o120+" aerial 120 V over 150 ft</span>");
 document.getElementById("sumtxt").innerHTML=p.join(" &nbsp;&middot;&nbsp; ")}
 document.getElementById("sumbar").onclick=function(){var i=document.getElementById("info"),o=!i.classList.contains("open");i.classList.toggle("open",o);document.getElementById("sumarrow").innerHTML=o?"&#9660;":"&#9650;"};
-function refresh(){drawMarkers();drawLines();updSum();status()}
+function refresh(){FED=fedSet();drawMarkers();drawLines();updSum();status()}
 map.on("click",function(e){
 if(areaJust||area)return;
 if(pasting){doPaste(e.latlng);return}
@@ -1065,7 +1069,7 @@ $("nbf").onchange=function(){var fs=[].slice.call(this.files),self=this;nbSave()
 
 /* ---------- estimate model ---------- */
 function polesCable(){var c6=0,fb=0,v=0,va=0,auto=0;cables.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b);if(k.t==="v"){if(k.air)va+=d;else v+=d}else if(k.t==="f")fb+=d;else c6+=d});
- poles.forEach(function(p){if(p.e||hasCable(p.id))return;var n=nearest(p);if(n)auto+=n.d});return{c6:c6+auto,fb:fb,v:v,va:va}}
+ poles.forEach(function(p){if(isPw(p)||hasCable(p.id))return;var n=nearest(p);if(n)auto+=n.d});return{c6:c6+auto,fb:fb,v:v,va:va}}
 function est(){var L=[],tc=0,g={};cams.forEach(function(c){var n=c.n||1,k=camKey(c);g[k]=(g[k]||0)+n;tc+=n});
  Object.keys(g).forEach(function(k){L.push({grp:"Cameras",item:(k==="q"?"4-camera unit, per camera":CAMS[k].nm+" camera")+(CAMS[k].mdl?" - "+CAMS[k].mdl:""),qty:g[k],unit:"ea",pk:"cam_"+k})});
  var pp=poles.filter(function(p){return!p.e}).length,pw=poles.filter(function(p){return p.e}).length;
@@ -1120,7 +1124,7 @@ function tblPwr(){var tw=0,h="",P=[];cams.forEach(function(c){var w=CAMS[camKey(
  h+='<div class="frm"><label>Sun hours/day <input data-pj="sun" type="number" min="1" step=".5" value="'+sun+'" style="width:70px"></label><label>Days without sun <input data-pj="aut" type="number" min="1" value="'+aut+'" style="width:70px"></label><label>System volts <select data-pj="vol"><option'+(vol===12?" selected":"")+'>12</option><option'+(vol===24?" selected":"")+'>24</option><option'+(vol===48?" selected":"")+'>48</option></select></label></div>';
  h+='<table class="pt"><tr><th>Pole</th><th>Cameras</th><th class="r">Load, W</th><th>Fed by</th><th class="r">Solar panel, W</th><th class="r">Battery, Ah</th></tr>';var any=false;
  poles.forEach(function(p){var cs=cams.filter(function(c){return c.pole===p.id});if(!cs.length)return;any=true;var w=0;cs.forEach(function(c){w+=CAMS[camKey(c)].w*(c.n||1)});
-  var feed="",solar=false;if(p.e)feed="120 V on this pole";else{var cvs=cables.filter(function(k){return k.t!=="v"&&k.t!=="f"&&(k.a===p.id||k.b===p.id)}),n=nearest(p);if(cvs.length)feed="Cat6 PoE (pole cable)";else if(n&&n.d<=MAXFT)feed="Cat6 PoE, "+Math.round(n.d)+" ft";else{feed=n?"Cat6 too long ("+Math.round(n.d)+" ft)":"No link";solar=true}}
+  var feed="",solar=false;if(isPw(p))feed="120 V on this pole";else{var cvs=cables.filter(function(k){return k.t!=="v"&&k.t!=="f"&&(k.a===p.id||k.b===p.id)}),n=nearest(p);if(cvs.length)feed="Cat6 PoE (pole cable)";else if(n&&n.d<=MAXFT)feed="Cat6 PoE, "+Math.round(n.d)+" ft";else{feed=n?"Cat6 too long ("+Math.round(n.d)+" ft)":"No link";solar=true}}
   var kwh=w*24,pan=Math.ceil(kwh/(sun*.7)/10)*10,bat=Math.ceil(kwh*aut/.5/vol/10)*10;
   h+='<tr><td>Pole '+p.id+'</td><td>'+cs.map(function(c){return camNum(c)}).join(", ")+'</td><td class="r">'+num(w)+'</td><td'+(solar?' class="warn"':"")+'>'+feed+'</td><td class="r">'+(solar?num(pan):"-")+'</td><td class="r">'+(solar?num(bat):"-")+'</td></tr>'});
  if(!any)h+='<tr><td colspan="6">No cameras on poles.</td></tr>';h+='</table><p class="pn">Solar sizing is shown only for poles that cannot be fed by Cat6 PoE. Formula: daily Wh = load x 24; panel = daily Wh / (sun hours x 0.7); battery = daily Wh x days / (0.5 depth of discharge x volts). Add margin for winter and heaters (PTZ especially).</p>';return h}
