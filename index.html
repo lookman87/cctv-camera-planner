@@ -69,6 +69,7 @@ table.ct td{padding:3px 12px 3px 0;text-align:right;white-space:nowrap}
 table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 #mapwrap{position:relative}
 .pill{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--p,.7));display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;border-radius:7px;color:#fff;font:600 11px/1 system-ui;white-space:nowrap;box-shadow:0 0 0 1.5px #fff,0 1px 4px rgba(0,0,0,.5);opacity:.94}
+.pill.xf{background:#1e293b;padding:4px 10px 4px 7px;font-size:12px;border-radius:9px;box-shadow:0 0 0 1.5px #fb923c,0 1px 4px rgba(0,0,0,.5)}
 .pill.srv{background:#1e293b;padding:4px 10px 4px 7px;font-size:12px;border-radius:9px;box-shadow:0 0 0 1.5px #fde68a,0 1px 4px rgba(0,0,0,.5)}
 .pill.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px #00e5ff}
 #hint{display:flex;margin:6px 2px 0}
@@ -235,6 +236,7 @@ body.rptprint #rpt{display:block;font:12px/1.35 system-ui,sans-serif;color:#000;
 <button id="ti"><svg class="ic" width="16" height="16" viewBox="-12 -12 24 24"><circle r="10" fill="#fff" stroke="#006FFF" stroke-width="2.5"/><circle cy="5" r="1.6" fill="#006FFF"/><path d="M-3 1.5A4.2 4.2 0 0 1 3 1.5M-5.6 -1.5A7.8 7.8 0 0 1 5.6 -1.5" fill="none" stroke="#006FFF" stroke-width="1.8" stroke-linecap="round"/></svg>UniFi AP</button>
 <button id="ty"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" fill="#334155" stroke="#334155"/><path d="M7 8h10M7 12h10M7 16h10" stroke="#fff"/><circle cx="17" cy="8" r=".6" fill="#4ade80" stroke="#4ade80"/></svg>Server room</button>
 <button id="tn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="1.5"/><path d="M9 7h6M9 12h6M9 17h6"/></svg>IDF</button>
+<button id="tz"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/><path d="M2 12h2M20 12h2"/></svg>Transformer</button>
 <span class="sep"></span>
 <button id="tr"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg>Ruler</button>
 <button id="ts" hidden><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 8v8M21 8v8M8 12v-3M12 12v-3M16 12v-3"/></svg>Set scale</button>
@@ -261,13 +263,13 @@ body.rptprint #rpt{display:block;font:12px/1.35 system-ui,sans-serif;color:#000;
 <details class="info"><summary style="cursor:pointer">Help</summary><p style="margin:6px 0">Floor plan mode: press Floor plan (PDF), then Load PDF or image. Next press Set scale, tap two points on the plan with a known distance (a wall, a door), and type the real length. After that the Ruler, cameras, UniFi APs, walls and cubicles use true size. Map and Floor plan are saved separately, and you can switch between them any time.</p><p style="margin:6px 0">The plan saves itself in this browser. Save as PDF fits the current map view on one landscape page, with extra sharp satellite tiles (it can take a few seconds to load them): frame the map first (Fit all helps), press the button, and in the print window choose Save as PDF as the printer. Use Save to file to keep a copy or move it to another computer, and Open file to load it. First place the Office, then poles. Plain poles with no cable of their own get a dashed Cat6 line to the nearest powered pole or the office. To draw a cable yourself, pick Cat6 or Fiber, then tap the first pole and the second pole. Cat6 over 300 ft turns red. Lengths are straight lines on the satellite map, so leave 10 to 15 percent extra for real runs. The map needs internet. Camera: pick Camera and tap a pole, or tap anywhere on the map, to put a camera there. The blue beam is its view and the camera sits at its base (a 360 camera sits in the middle of the circle). Tap a camera to select it. A white dot then appears at the end of the beam. Drag the dot to turn the camera, and drag it farther or closer to change the range (default 107 degrees and about 115 ft). Change the angle with the list at the bottom. To move a free camera, just drag its icon. You can put several cameras on one pole. Fence: pick Fence, tap each corner on the map, then tap Finish fence. Barrier gate: pick Barrier gate and tap the map where the base stands, then drag the white dot to turn the arm and set its length. The length is shown on the arm. Hand mode only moves and zooms the map. In every other mode except the cable tools you can drag poles, the office and cameras to move them.</p><p style="margin:6px 0"><b>Tip:</b> hold <b>Space</b> while the mouse is over the map or plan and drag to move it (like the Hand tool). Without a mouse, drag empty space to move the map.</p></details>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-var KEY="pole-planner-map-v1",KEYP="pole-planner-plan-v1",FTM=3.28084,MAXFT=300;
+var KEY="pole-planner-map-v1",KEYP="pole-planner-plan-v1",FTM=3.28084,MAXFT=300;var xfs=[],MAX120=150;
 var Cloud={touch:function(){},del:function(){},st:function(){}};
 function $(i){return document.getElementById(i)}
 var NT={},PR={},LAY=(function(){try{return Object.assign({cam:1,zone:1,tags:1,cat6:1,fib:1,v:1},JSON.parse(localStorage.getItem("pp-lay")||"{}"))}catch(e){return{cam:1,zone:1,tags:1,cat6:1,fib:1,v:1}}})(),CATS=(function(){try{return JSON.parse(localStorage.getItem("pp-cat2"))||{}}catch(e){return{}}})(),pendingCC=null,mode="map",cabs=[],srvs=[],fibs=[],fstart=null,cabsel=[],rs={style:"manh",drop:15,slack:10,mdf:20,show:true,labels:true},RUNS=[],SL=[],presOn=false,presPrev="m",plan=null,planImg=null,aps=[],cubs=[],rulers=[],apsel=[],xsel=[],cubSize="1.83,1.83",rstart=null,scl=null,psel=[],bsel=[],fsel=[],area=false,areaJust=false,arect=null,astart=null,msel=[],multi=false,clip=null,pasting=false,lastLL=null,poles=[],cables=[],cams=[],fences=[],bars=[],draft=[],fenceColor="#111111",uid=1,office=null,nid=1,cid=1,mid=1,sel=null,start=null,tool="m";
 var PCEN={lat:41.7606,lng:-88.3201};function defView(m){return m==="plan"?{lat:PCEN.lat,lng:PCEN.lng,z:20}:{lat:41.7606,lng:-88.3201,z:17}}
 var view=defView("map");
-function load(o){(o.m||[]).forEach(function(c){if(c.n===4&&c.fov===90)c.fov=107;if(c.fov===87)c.fov=79});poles=o.p||[];cables=o.c||[];cams=o.m||[];mid=o.q||1;fences=o.f||[];bars=o.b||[];uid=o.u||1;office=o.o||null;nid=o.n||1;cid=o.k||1;aps=o.a||[];cubs=o.x||[];rulers=o.r||[];plan=o.pl||null;cabs=o.g||[];srvs=o.sr||[];cabs.forEach(function(c){var m=/^Cabinet (\d+)$/.exec(c.name||"");if(m)c.name="IDF "+m[1]});srvs.forEach(function(c){var m=/^MDF (\d+)$/.exec(c.name||"");if(m)c.name="Server Room "+m[1]});fibs=o.fb||[];fstart=null;rs=Object.assign({style:"manh",drop:15,slack:10,mdf:20,show:true,labels:true},o.rs||{});if(o.v)view=o.v;NT=o.nt||{};PR=o.pr||{};var cc=o.cc||[];if(typeof CAMS!=="undefined"&&CAMS)cc.forEach(addCustomCam);else pendingCC=cc}
+function load(o){(o.m||[]).forEach(function(c){if(c.n===4&&c.fov===90)c.fov=107;if(c.fov===87)c.fov=79});poles=o.p||[];cables=o.c||[];cams=o.m||[];mid=o.q||1;fences=o.f||[];bars=o.b||[];uid=o.u||1;office=o.o||null;nid=o.n||1;cid=o.k||1;aps=o.a||[];cubs=o.x||[];rulers=o.r||[];plan=o.pl||null;cabs=o.g||[];srvs=o.sr||[];xfs=o.xf||[];cabs.forEach(function(c){var m=/^Cabinet (\d+)$/.exec(c.name||"");if(m)c.name="IDF "+m[1]});srvs.forEach(function(c){var m=/^MDF (\d+)$/.exec(c.name||"");if(m)c.name="Server Room "+m[1]});fibs=o.fb||[];fstart=null;rs=Object.assign({style:"manh",drop:15,slack:10,mdf:20,show:true,labels:true},o.rs||{});if(o.v)view=o.v;NT=o.nt||{};PR=o.pr||{};var cc=o.cc||[];if(typeof CAMS!=="undefined"&&CAMS)cc.forEach(addCustomCam);else pendingCC=cc}
 var IDX="pole-planner-v2-index",DK="pole-planner-v2-d-",vars=[],curV=null,imgMem={};
 function rid(){return"v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function saveIndex(){try{localStorage.setItem(IDX,JSON.stringify({cur:curV,vs:vars}))}catch(e){}}
@@ -283,7 +285,7 @@ curV=vars[0].id;if(pm==="plan")for(var k=0;k<vars.length;k++)if(vars[k].mode==="
 if(!vById(curV))curV=vars[0].id})();
 mode=vById(curV).mode;view=defView(mode);
 (function(){var d=readD(curV);if(d)load(d)})();
-function data(file){var c=map.getCenter(),o={p:poles,c:cables,m:cams,q:mid,f:fences,b:bars,u:uid,o:office,n:nid,k:cid,a:aps,x:cubs,r:rulers,g:cabs,sr:srvs,fb:fibs,rs:rs,pl:plan,md:mode,nt:NT,pr:PR,cc:customList(),v:{lat:c.lat,lng:c.lng,z:map.getZoom()}};if(file&&mode==="plan"&&planImg)o.img=planImg;return o}
+function data(file){var c=map.getCenter(),o={p:poles,c:cables,m:cams,q:mid,f:fences,b:bars,u:uid,o:office,n:nid,k:cid,a:aps,x:cubs,r:rulers,g:cabs,sr:srvs,xf:xfs,fb:fibs,rs:rs,pl:plan,md:mode,nt:NT,pr:PR,cc:customList(),v:{lat:c.lat,lng:c.lng,z:map.getZoom()}};if(file&&mode==="plan"&&planImg)o.img=planImg;return o}
 function save(quiet){try{writeD(curV,data());if(quiet===true)return;var v=vById(curV);if(v){v.t=Date.now();v.mode=mode;delete v.blank;saveIndex();Cloud.touch(curV)}}catch(e){}}
 var map=L.map("map",{maxZoom:23,zoomControl:false}).setView([view.lat,view.lng],view.z);
 L.control.zoom({position:"topright"}).addTo(map);
@@ -296,7 +298,7 @@ function zs(){var z=map.getZoom();return Math.max(0.4,Math.min(1.1,Math.pow(2,(z
 function W(w){return Math.max(1,w*Math.max(0.5,Math.min(1,zs()*1.2)))}
 function scaleCSS(){var s=zs(),el=map.getContainer();el.style.setProperty("--s",s.toFixed(3));var c0=map.getCenter(),mpp=156543.03*Math.cos(c0.lat*Math.PI/180)/Math.pow(2,map.getZoom()),pp=Math.max(0.26,Math.min(1,(10/mpp)/120));el.style.setProperty("--p",pp.toFixed(3));el.style.setProperty("--c",Math.max(0.3,Math.min(1,(3/mpp)/30)).toFixed(3));el.style.setProperty("--h",Math.max(0.75,s).toFixed(3));el.style.setProperty("--t",Math.max(0.8,Math.min(1.1,s*1.5)).toFixed(3))}
 function canDrag(){return "mpeoaqlkixbwny".indexOf(tool)>=0&&tool!=="w"}
-function node(i){if(typeof i==="string"){var L1={c:cabs,s:srvs,a:aps,m:cams,x:cubs}[i[0]],id1=+i.slice(1);if(!L1)return null;for(var q=0;q<L1.length;q++)if(L1[q].id===id1)return L1[q];return null}if(i===0)return office;for(var k=0;k<poles.length;k++)if(poles[k].id===i)return poles[k];return null}
+function node(i){if(typeof i==="string"){var L1={c:cabs,s:srvs,a:aps,m:cams,x:cubs,t:xfs}[i[0]],id1=+i.slice(1);if(!L1)return null;for(var q=0;q<L1.length;q++)if(L1[q].id===id1)return L1[q];return null}if(i===0)return office;for(var k=0;k<poles.length;k++)if(poles[k].id===i)return poles[k];return null}
 function ll(n){return L.latLng(n.lat,n.lng)}
 function ft(a,b){return map.distance(ll(a),ll(b))*FTM}
 function off(p,d,deg){var r=deg*Math.PI/180;return L.latLng(p.lat+d*Math.cos(r)/111320,p.lng+d*Math.sin(r)/(111320*Math.cos(p.lat*Math.PI/180)))}
@@ -414,9 +416,9 @@ vm.on("drag",function(){var q=vm.getLatLng();p.lat=q.lat;p.lng=q.lng;drawLines()
 vm.on("dragend",function(){save();refresh()});
 vm.addTo(map);markers["v"+f.id+"_"+i]=vm})}
 function drawMarkers(){for(var k in markers)map.removeLayer(markers[k]);markers={};
-if(office)mk(office,0);poles.forEach(function(p){mk(p,p.id)});cams.forEach(mkCam);bars.forEach(mkBar);aps.forEach(mkAp);cubs.forEach(mkCub);cabs.forEach(mkCab);srvs.forEach(mkSrv);if(sel&&sel.t==="r"){var sr=rulerById(sel.id);if(sr)mkRVerts(sr)}if(sel&&sel.t==="w"){var sf=fenceById(sel.id);if(sf)mkVerts(sf)}}
-function label(a,b,dist,bad){var m=L2((a.lat+b.lat)/2,(a.lng+b.lng)/2);
-L.marker(m,{interactive:false,icon:L.divIcon({className:"",html:'<div class="len'+(bad?" bad":"")+'">'+Math.round(dist)+" ft"+(bad?" LIMIT":"")+"</div>",iconSize:[90,14],iconAnchor:[45,20]})}).addTo(lines)}
+if(office)mk(office,0);poles.forEach(function(p){mk(p,p.id)});cams.forEach(mkCam);bars.forEach(mkBar);aps.forEach(mkAp);cubs.forEach(mkCub);cabs.forEach(mkCab);srvs.forEach(mkSrv);xfs.forEach(mkXf);if(sel&&sel.t==="r"){var sr=rulerById(sel.id);if(sr)mkRVerts(sr)}if(sel&&sel.t==="w"){var sf=fenceById(sel.id);if(sf)mkVerts(sf)}}
+function label(a,b,dist,bad,txt){var m=L2((a.lat+b.lat)/2,(a.lng+b.lng)/2);
+L.marker(m,{interactive:false,icon:L.divIcon({className:"",html:'<div class="len'+(bad?" bad":"")+'">'+Math.round(dist)+" ft"+(bad?(txt?" - "+txt:" LIMIT"):"")+"</div>",iconSize:txt&&bad?[260,14]:[90,14],iconAnchor:txt&&bad?[130,20]:[45,20]})}).addTo(lines)}
 function L2(a,b){return L.latLng(a,b)}
 function seg(a,b,color,w,dash,id){w=W(w);
 L.polyline([ll(a),ll(b)],{color:"#000",weight:w+3,opacity:.45,interactive:false}).addTo(lines);
@@ -461,9 +463,9 @@ dp.forEach(function(q){L.circleMarker(q,{radius:5,color:"#000",weight:1,fillColo
 var nc=0,nf=0,nv=0,lv=0,over=0,lc=0,lf=0;
 poles.forEach(function(p){if(p.e||hasCable(p.id))return;var n=nearest(p);if(!n)return;var bad=n.d>MAXFT;nc++;lc+=n.d;if(bad)over++;
 if(!LAY.cat6)return;seg(p,n.q,bad?"#e03131":"#378ADD",3,"7 5",0);if(bad||(sel&&sel.t==="p"&&sel.id===p.id))label(p,n.q,n.d,bad)});
-cables.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b),bad=k.t==="c"&&d>MAXFT;
+cables.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b),bad=(k.t==="c"&&d>MAXFT)||(k.t==="v"&&d>MAX120);
 if(k.t==="v"){nv++;lv+=d}else if(k.t==="f"){nf++;lf+=d}else{nc++;lc+=d;if(bad)over++}
-if((k.t==="v"&&!LAY.v)||(k.t==="f"&&!LAY.fib)||((k.t==="c"||!k.t)&&!LAY.cat6))return;seg(a,b,k.t==="v"?"#d6336c":k.t==="f"?"#FFB400":(bad?"#e03131":"#378ADD"),k.t==="f"?5:3,bad?"7 5":null,k.id);label(a,b,d,bad)});
+if((k.t==="v"&&!LAY.v)||(k.t==="f"&&!LAY.fib)||((k.t==="c"||!k.t)&&!LAY.cat6))return;seg(a,b,k.t==="v"?(bad?"#e03131":"#d6336c"):k.t==="f"?"#FFB400":(bad?"#e03131":"#378ADD"),k.t==="f"?5:3,bad?"7 5":null,k.id);label(a,b,d,bad,k.t==="v"?"No more than 150 ft on air":0)});
 var pe=poles.filter(function(p){return p.e}).length;
 var g={},tc=0,u4=0,cl=[];cams.forEach(function(c){var n=c.n||1,key;tc+=n;key=camKey(c);g[key]=(g[key]||0)+n});
 var ko=Object.keys(g).sort(function(a,b){return "akldgq".indexOf(a)-"akldgq".indexOf(b)});
@@ -516,8 +518,9 @@ else if(sw0){t.textContent="Selected: "+(sw0.k==="wall"?"wall":"fence")+", "+Mat
 else if(sb0){t.textContent="Selected: barrier gate, arm "+Math.round(sb0.len*FTM)+" ft. Drag the white dot to turn it."}
 else if(sa&&sa.n===4){t.textContent="Selected: 4-camera unit (counts as 4), "+sa.fov+" degrees each, range "+Math.round(sa.r*FTM)+" ft. Drag the white dot to turn all four or change range."}
 else if(sa){t.textContent="Selected: "+CAMS[camKey(sa)].nm+" camera, "+(sa.fov===360?"360 degrees":sa.fov+" degrees")+", range "+Math.round(sa.r*FTM)+" ft. Drag the white dot to turn it or change range. "+CAMS[camKey(sa)].inf}
+else if(sel&&sel.t==="xf"){t.textContent="Selected: 480 V to 120 V transformer. Use the 120 V tool to run power cable from it, 150 ft max on air. Drag to move."}
 else if(sc){t.textContent="Selected: "+(sc.t==="v"?"120 V power":sc.t==="f"?"fiber":"Cat6")+" cable, "+Math.round(ft(node(sc.a),node(sc.b)))+" ft";b.textContent=sc.t==="c"?"Change to fiber":sc.t==="f"?"Change to 120 V":"Change to Cat6"}
-else t.textContent=CAMS[tool]?"Tap a pole or the map to put a "+CAMS[tool].nm+" camera. "+CAMS[tool].inf+" Drag the white dot to aim it.":tool==="r"?(rstart?"Now tap the end point.":"Ruler: tap the start point, then the end point. The distance shows in ft and m."):tool==="s"?(scl&&scl.b?"Type the real distance between the two red points and press Apply scale.":scl?"Now tap the second point.":"Set scale: tap two points on the plan that you know the real distance between (a wall, a door, a dimension line)."):tool==="v"?(start!==null?"Now tap the second pole or point to run the 120 V cable.":"120 V power cable: tap one pole or point, then another."):tool==="y"?"Tap to place the Server Room. Fiber is counted from every IDF cabinet to the nearest Server Room (20 ft added at each end).":tool==="n"?"Tap to place a IDF cabinet. Cable is counted from every UniFi AP and free camera to the nearest cabinet.":tool==="i"?"Tap to place a UniFi AP. Drag the white dot to change its coverage radius.":tool==="x"?"Tap to place an office cubicle. Choose the size in the list.":tool==="w"?(draft.length?"Tap to add the next point. Tap Finish "+(mode==="plan"?"wall":"fence")+" when done.":"Tap the map to start the "+(mode==="plan"?"wall":"fence")+", then tap each corner."):tool==="b"?"Tap the map where the barrier base stands. Then drag the white dot to turn the arm.":tool==="h"?"Hand mode: drag to move the map, pinch or scroll to zoom. Items stay in place.":tool==="m"?"Drag items to move them. Drag empty space or hold Space and drag to move the map. Drag the white dot to turn or resize.":tool==="p"||tool==="e"?"Tap the map to add a pole. Drag an existing pole to move it.":tool==="o"?"Tap the map to place the office. Drag items to move them.":start!==null?"Now tap the second pole.":(tool==="c"||tool==="f"?"Tap the first pole or the office.":tool==="o"?"Tap the map where the office container is.":"Tap the map to add. Tap a pole or cable to select it.")}
+else t.textContent=CAMS[tool]?"Tap a pole or the map to put a "+CAMS[tool].nm+" camera. "+CAMS[tool].inf+" Drag the white dot to aim it.":tool==="r"?(rstart?"Now tap the end point.":"Ruler: tap the start point, then the end point. The distance shows in ft and m."):tool==="s"?(scl&&scl.b?"Type the real distance between the two red points and press Apply scale.":scl?"Now tap the second point.":"Set scale: tap two points on the plan that you know the real distance between (a wall, a door, a dimension line)."):tool==="v"?(start!==null?"Now tap the second pole or point to run the 120 V cable.":"120 V power cable: tap one pole or point, then another."):tool==="z"?"Tap to place a 480 V to 120 V transformer. Then use the 120 V tool to run cable from it. Each 120 V run can be 150 ft at most on air.":tool==="y"?"Tap to place the Server Room. Fiber is counted from every IDF cabinet to the nearest Server Room (20 ft added at each end).":tool==="n"?"Tap to place a IDF cabinet. Cable is counted from every UniFi AP and free camera to the nearest cabinet.":tool==="i"?"Tap to place a UniFi AP. Drag the white dot to change its coverage radius.":tool==="x"?"Tap to place an office cubicle. Choose the size in the list.":tool==="w"?(draft.length?"Tap to add the next point. Tap Finish "+(mode==="plan"?"wall":"fence")+" when done.":"Tap the map to start the "+(mode==="plan"?"wall":"fence")+", then tap each corner."):tool==="b"?"Tap the map where the barrier base stands. Then drag the white dot to turn the arm.":tool==="h"?"Hand mode: drag to move the map, pinch or scroll to zoom. Items stay in place.":tool==="m"?"Drag items to move them. Drag empty space or hold Space and drag to move the map. Drag the white dot to turn or resize.":tool==="p"||tool==="e"?"Tap the map to add a pole. Drag an existing pole to move it.":tool==="o"?"Tap the map to place the office. Drag items to move them.":start!==null?"Now tap the second pole.":(tool==="c"||tool==="f"?"Tap the first pole or the office.":tool==="o"?"Tap the map where the office container is.":"Tap the map to add. Tap a pole or cable to select it.")}
 
 function apById(i){for(var k=0;k<aps.length;k++)if(aps[k].id===i)return aps[k];return null}
 function cubById(i){for(var k=0;k<cubs.length;k++)if(cubs[k].id===i)return cubs[k];return null}
@@ -561,6 +564,15 @@ function planRuns(){var out=[];if(!cabs.length)return out;var devs=[];aps.forEac
 devs.forEach(function(x){var forced=x.d.cab?cabById(x.d.cab):null,best=null;(forced?[forced]:cabs).forEach(function(c){var L0=runLen(x.d,c);if(!best||L0<best.len)best={cab:c,len:L0}});out.push({d:x.d,k:x.k,n:x.n,cab:best.cab,len:best.len,bad:best.len>MAXFT})});return out}
 function srvById(i){for(var k=0;k<srvs.length;k++)if(srvs[k].id===i)return srvs[k];return null}
 function srvIcon(c,isSel){return L.divIcon({className:"",html:'<div class="pill srv'+(isSel?" sel":"")+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fde68a" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="7" rx="1.8"/><rect x="3" y="14" width="18" height="7" rx="1.8"/><path d="M7 6.5h.01M7 17.5h.01M12 6.5h5M12 17.5h5"/></svg>'+String(c.name||"Server Room").replace(/[<>&]/g,"")+'</div>',iconSize:[0,0],iconAnchor:[0,0]})}
+function xfIcon(c,isSel){return L.divIcon({className:"",html:'<div class="pill xf'+(isSel?" sel":"")+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/><path d="M2 12h2M20 12h2"/></svg>480 V &rarr; 120 V</div>',iconSize:[0,0],iconAnchor:[0,0]})}
+function xfById(i){for(var k=0;k<xfs.length;k++)if(xfs[k].id===i)return xfs[k];return null}
+function mkXf(c){var isSel=sel&&sel.t==="xf"&&sel.id===c.id;
+var m=L.marker(L.latLng(c.lat,c.lng),{icon:xfIcon(c,isSel),draggable:canDrag(),zIndexOffset:1370});
+m.on("click",function(e){if(tool==="v"){onNode("t"+c.id,e);return}L.DomEvent.stopPropagation(e);start=null;clearSel();sel={t:"xf",id:c.id};save();refresh()});
+m.on("dragstart",function(){start=null;sel={t:"xf",id:c.id}});
+m.on("drag",function(){var q=m.getLatLng();c.lat=q.lat;c.lng=q.lng;drawLines()});
+m.on("dragend",function(){save();refresh()});
+m.addTo(map);markers["xf"+c.id]=m}
 function mkSrv(c){var isSel=sel&&sel.t==="srv"&&sel.id===c.id;
 var m=L.marker(L.latLng(c.lat,c.lng),{icon:srvIcon(c,isSel),draggable:canDrag(),zIndexOffset:1370});
 m.on("click",function(e){if(tool==="v"){onNode("s"+c.id,e);return}L.DomEvent.stopPropagation(e);start=null;clearSel();sel={t:"srv",id:c.id};save();refresh()});
@@ -694,13 +706,14 @@ function applyScale(f){function sc(p){p.lat=PCEN.lat+(p.lat-PCEN.lat)*f;p.lng=PC
 poles.forEach(sc);cams.forEach(function(c){if(!c.pole)sc(c)});bars.forEach(sc);aps.forEach(sc);cubs.forEach(sc);cabs.forEach(sc);srvs.forEach(sc);fences.forEach(function(x){x.pts.forEach(sc)});rulers.forEach(function(r){sc(r.a);sc(r.b)});if(office)sc(office);
 if(plan){plan.wm*=f;plan.hm*=f;plan.cal=true}showPlan();if(planLayer)map.fitBounds(planBounds(),{animate:false})}
 function updSum(){var tcm=0;cams.forEach(function(c){tcm+=c.n||1});var cat=0,nc=0,ov=0;RUNS.forEach(function(r){cat+=r.len*r.n;nc+=r.n;if(r.bad)ov+=r.n});var fb=0;SL.forEach(function(k){fb+=k.len});fibs.forEach(function(f){fb+=fibLen(f)});
-var p=[];p.push("<b>"+tcm+"</b> cameras");if(aps.length)p.push("<b>"+aps.length+"</b> AP");if(cabs.length)p.push("<b>"+cabs.length+"</b> IDF");if(srvs.length)p.push("<b>"+srvs.length+"</b> Server room");if(nc)p.push("Cat6 <b>"+nc+"</b> cables, <b>"+Math.round(cat)+"</b> ft");if(fb)p.push("Fiber <b>"+Math.round(fb)+"</b> ft");var pv=0,pvn=0;cables.forEach(function(k){if(k.t==="v"){var a1=node(k.a),b1=node(k.b);if(a1&&b1){pv+=ft(a1,b1);pvn++}}});if(pvn)p.push("120 V <b>"+Math.round(pv)+"</b> ft");if(ov)p.push('<span class="warn">'+ov+" over 300 ft</span>");
+var p=[];p.push("<b>"+tcm+"</b> cameras");if(aps.length)p.push("<b>"+aps.length+"</b> AP");if(cabs.length)p.push("<b>"+cabs.length+"</b> IDF");if(srvs.length)p.push("<b>"+srvs.length+"</b> Server room");if(nc)p.push("Cat6 <b>"+nc+"</b> cables, <b>"+Math.round(cat)+"</b> ft");if(fb)p.push("Fiber <b>"+Math.round(fb)+"</b> ft");var pv=0,pvn=0,o120=0;cables.forEach(function(k){if(k.t==="v"){var a1=node(k.a),b1=node(k.b);if(a1&&b1){var d1=ft(a1,b1);pv+=d1;pvn++;if(d1>MAX120)o120++}}});if(pvn)p.push("120 V <b>"+Math.round(pv)+"</b> ft");if(ov)p.push('<span class="warn">'+ov+" over 300 ft</span>");if(xfs.length)p.push("<b>"+xfs.length+"</b> transformer");if(o120)p.push('<span class="warn">'+o120+" 120 V over 150 ft</span>");
 document.getElementById("sumtxt").innerHTML=p.join(" &nbsp;&middot;&nbsp; ")}
 document.getElementById("sumbar").onclick=function(){var i=document.getElementById("info"),o=!i.classList.contains("open");i.classList.toggle("open",o);document.getElementById("sumarrow").innerHTML=o?"&#9660;":"&#9650;"};
 function refresh(){drawMarkers();drawLines();updSum();status()}
 map.on("click",function(e){
 if(areaJust||area)return;
 if(pasting){doPaste(e.latlng);return}
+if(tool==="z"){var xf0={id:uid++,lat:e.latlng.lat,lng:e.latlng.lng,name:"480 V to 120 V transformer"};xfs.push(xf0);clearSel();sel={t:"xf",id:xf0.id};start=null;save();refresh();return}
 if(tool==="y"){var sr0={id:uid++,lat:e.latlng.lat,lng:e.latlng.lng,name:"Server Room "+(srvs.length+1)};srvs.push(sr0);clearSel();sel={t:"srv",id:sr0.id};start=null;save();refresh();return}
 if(tool==="n"){var cb0={id:uid++,lat:e.latlng.lat,lng:e.latlng.lng,name:"IDF "+(cabs.length+1)};cabs.push(cb0);clearSel();sel={t:"cab",id:cb0.id};start=null;save();refresh();return}
 if(tool==="i"){var ap={id:uid++,lat:e.latlng.lat,lng:e.latlng.lng,r:mode==="plan"?7.5:25};aps.push(ap);clearSel();sel={t:"ap",id:ap.id};start=null;save();refresh();return}
@@ -716,7 +729,7 @@ else if(tool==="o"){office={lat:e.latlng.lat,lng:e.latlng.lng};sel=null}
 else{var p={id:nid++,lat:e.latlng.lat,lng:e.latlng.lng,e:tool==="e"?1:0};poles.push(p);sel={t:"p",id:p.id}}
 save();refresh()});
 map.on("moveend",function(){save(true)});
-var ids={y:"ty",n:"tn",r:"tr",s:"ts",i:"ti",x:"tx",h:"th",m:"tm",p:"tp",e:"te",o:"to",a:"ta",q:"tq",l:"tl",k:"tk",w:"tw",b:"tb",c:"tc",f:"tf",v:"tv"};
+var ids={y:"ty",n:"tn",r:"tr",s:"ts",i:"ti",x:"tx",h:"th",m:"tm",p:"tp",e:"te",o:"to",a:"ta",q:"tq",l:"tl",k:"tk",w:"tw",b:"tb",c:"tc",f:"tf",v:"tv",z:"tz"};
 function setTool(t){tool=t;start=null;if(t!=="f")fstart=null;if(t!=="w")draft=[];if(t!=="r"){rstart=null}if(t!=="s"){scl=null;document.getElementById("sclbox").hidden=true}tmp.clearLayers();map.getContainer().classList.toggle("measuring",t==="r"||t==="s"||(t==="w"&&mode==="plan"));map.getContainer().classList.toggle("hand",t==="h");for(var k in ids)document.getElementById(ids[k]).className=k===t?"on":"";var isC=!!CAMS[t];document.getElementById("ta").className=isC?"on":"";if(isC)document.getElementById("ctype").value=t;refresh()}
 for(var kk in ids)(function(k){document.getElementById(ids[k]).onclick=function(){setTool(k)}})(kk);
 function rcMove(e){var t=e.target;if(!t||!t.closest)return false;if(t.closest("#toolrow,#ctxrow,input,textarea,select,#gdlist,.leaflet-popup"))return false;return true}
@@ -739,6 +752,7 @@ else if(sel.t==="w"){var jw=sel.id;fences=fences.filter(function(f){return f.id!
 else if(sel.t==="b"){var jb=sel.id;bars=bars.filter(function(g){return g.id!==jb})}
 else if(sel.t==="ap"){var ja=sel.id;aps=aps.filter(function(g){return g.id!==ja})}
 else if(sel.t==="x"){var jx=sel.id;cubs=cubs.filter(function(g){return g.id!==jx})}
+else if(sel.t==="xf"){var jz=sel.id;xfs=xfs.filter(function(g){return g.id!==jz});cables=cables.filter(function(k){return k.a!=="t"+jz&&k.b!=="t"+jz})}
 else if(sel.t==="srv"){var js=sel.id;srvs=srvs.filter(function(g){return g.id!==js})}
 else if(sel.t==="fib"){var jf=sel.id;fibs=fibs.filter(function(g){return g.id!==jf})}
 else if(sel.t==="cab"){var jc=sel.id;fibs=fibs.filter(function(g){return g.a!==jc&&g.b!==jc});cabs=cabs.filter(function(g){return g.id!==jc});aps.forEach(function(a){if(a.cab===jc)delete a.cab});cams.forEach(function(a){if(a.cab===jc)delete a.cab})}
@@ -746,7 +760,7 @@ else if(sel.t==="r"){var jr=sel.id;rulers=rulers.filter(function(g){return g.id!
 else{var j=sel.id;cables=cables.filter(function(k){return k.id!==j})}sel=null;save();refresh()};
 var backup=null,unb=document.getElementById("un");
 document.getElementById("cl").onclick=function(){if(!poles.length&&!cables.length&&!cams.length&&!fences.length&&!bars.length&&!office&&!aps.length&&!cubs.length&&!rulers.length&&!cabs.length&&!srvs.length)return;
-backup=JSON.stringify(data());poles=[];cables=[];cams=[];fences=[];bars=[];aps=[];cubs=[];rulers=[];cabs=[];srvs=[];fibs=[];draft=[];office=null;sel=null;start=null;unb.hidden=false;save();refresh()};
+backup=JSON.stringify(data());poles=[];cables=[];cams=[];fences=[];bars=[];aps=[];cubs=[];rulers=[];cabs=[];srvs=[];xfs=[];fibs=[];draft=[];office=null;sel=null;start=null;unb.hidden=false;save();refresh()};
 unb.onclick=function(){if(!backup)return;load(JSON.parse(backup));backup=null;unb.hidden=true;sel=null;start=null;save();refresh()};
 function find(){var v=document.getElementById("q").value.trim();if(!v)return;
 var m=v.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/),g=document.getElementById("gps");
@@ -808,7 +822,7 @@ document.getElementById("fit").onclick=function(){var pts=[];poles.forEach(funct
 cams.forEach(function(c){var p=camPos(c);if(p){pts.push([p.lat,p.lng]);var q=off(p,c.r,c.h);pts.push([q.lat,q.lng])}});
 fences.forEach(function(f){f.pts.forEach(function(p){pts.push([p.lat,p.lng])})});
 bars.forEach(function(b){pts.push([b.lat,b.lng]);var q=off(b,b.len,b.h);pts.push([q.lat,q.lng])});
-aps.forEach(function(a){pts.push([a.lat,a.lng])});cabs.forEach(function(a){pts.push([a.lat,a.lng])});srvs.forEach(function(a){pts.push([a.lat,a.lng])});cubs.forEach(function(c){pts.push([c.lat,c.lng])});rulers.forEach(function(r){pts.push([r.a.lat,r.a.lng]);pts.push([r.b.lat,r.b.lng])});
+aps.forEach(function(a){pts.push([a.lat,a.lng])});cabs.forEach(function(a){pts.push([a.lat,a.lng])});srvs.forEach(function(a){pts.push([a.lat,a.lng])});xfs.forEach(function(a){pts.push([a.lat,a.lng])});cubs.forEach(function(c){pts.push([c.lat,c.lng])});rulers.forEach(function(r){pts.push([r.a.lat,r.a.lng]);pts.push([r.b.lat,r.b.lng])});
 if(mode==="plan"&&planLayer){var pb=planBounds();pts.push(pb.getNorthEast());pts.push(pb.getSouthWest())}
 if(pts.length)map.fitBounds(pts,{padding:[40,40]})};
 var pv=null;
@@ -1001,7 +1015,7 @@ var _dl=drawLines;drawLines=function(){_dl.apply(this,arguments);doriDraw()};
 
 /* ---------- camera tags ---------- */
 var tagL=L.layerGroup().addTo(map);
-function selKey(){if(!sel)return null;var m={p:"p",a:"a",cab:"g",srv:"s",ap:"n"}[sel.t];return m&&sel.id!=null?m+sel.id:null}
+function selKey(){if(!sel)return null;var m={p:"p",a:"a",cab:"g",srv:"s",xf:"t",ap:"n"}[sel.t];return m&&sel.id!=null?m+sel.id:null}
 function drawTags(){tagL.clearLayers();$("map").classList.toggle("nocam",!LAY.cam);if(!LAY.tags||!LAY.cam)return;
  cams.forEach(function(c){var p=camPos(c);if(!p)return;var r=c.h*Math.PI/180,d=c.pole?36:40,dx=Math.round(d*Math.sin(r)),dy=Math.round(-d*Math.cos(r)),nt=NT["a"+c.id],mark=nt&&(nt.t||(nt.ph&&nt.ph.length))?" &#9998;":"";
   L.marker(L.latLng(p.lat,p.lng),{interactive:false,keyboard:false,zIndexOffset:1500,icon:L.divIcon({className:"",html:'<span class="ctag" style="transform:translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px));border-color:'+camCol(c)+'">'+camNum(c)+(c.n===4?" x4":"")+mark+'</span>',iconSize:[0,0]})}).addTo(tagL)})}
@@ -1051,6 +1065,7 @@ function est(){var L=[],tc=0,g={};cams.forEach(function(c){var n=c.n||1,k=camKey
  if(pp)L.push({grp:"Hardware",item:"Pole",qty:pp,unit:"ea",pk:"pole"});if(pw)L.push({grp:"Hardware",item:"Pole with power",qty:pw,unit:"ea",pk:"powpole"});
  if(cabs.length)L.push({grp:"Hardware",item:"IDF cabinet",qty:cabs.length,unit:"ea",pk:"idf"});
  if(srvs.length)L.push({grp:"Hardware",item:"Server room",qty:srvs.length,unit:"ea",pk:"srv"});
+ if(xfs.length)L.push({grp:"Hardware",item:"Transformer 480 V to 120 V",qty:xfs.length,unit:"ea",pk:"xf"});
  if(aps.length)L.push({grp:"Hardware",item:"UniFi AP",qty:aps.length,unit:"ea",pk:"ap"});
  var run=0,runN=0;RUNS.forEach(function(r){run+=r.len*r.n;runN+=r.n});var pc=polesCable(),fb=0;SL.forEach(function(k){fb+=k.len});fibs.forEach(function(f){fb+=fibLen(f)});fb+=pc.fb;
  if(run)L.push({grp:"Cable",item:"Cat6, device runs to IDF ("+runN+" cables, with drops and slack)",qty:Math.round(run),unit:"ft",pk:"cat6"});
@@ -1092,7 +1107,7 @@ function tblSto(){var S=storage(),h='<table class="pt"><tr><th>Camera type</th><
  h+='<div class="frm"><label>Retention, days <input data-pj="days" type="number" min="1" value="'+S.days+'" style="width:80px"></label><label>Recording <select data-pj="rec"><option value="1"'+(S.rec===1?" selected":"")+'>24/7 (100%)</option><option value="0.5"'+(S.rec===.5?" selected":"")+'>Mostly motion (50%)</option><option value="0.3"'+(S.rec===.3?" selected":"")+'>Motion only (30%)</option></select></label><label>Overhead % <input data-pj="ov" type="number" min="0" value="'+S.ov+'" style="width:70px"></label></div>';
  h+='<p class="pn"><b>'+num(S.gbDay,0)+' GB per day</b>, '+num(S.tb,1)+' TB for '+S.days+' days, about <b>'+num(S.tbOv,1)+' TB</b> with overhead. Network load into the recorder: '+num(S.tot,1)+' Mbps. Bitrates are typical for H.265, edit them in Catalog. Add RAID capacity on top of this.</p>';return h}
 function tblPwr(){var tw=0,h="",P=[];cams.forEach(function(c){var w=CAMS[camKey(c)].w*(c.n||1);tw+=w});aps.forEach(function(){tw+=price("apw")||15});
- var pc=polesCable();h+='<p class="pn">Total PoE load of all cameras and APs: <b>'+num(tw)+' W</b>. 120 V cable on the plan: <b>'+num(Math.round(pc.v))+' ft</b>.</p>';
+ var pc=polesCable();h+='<p class="pn">Total PoE load of all cameras and APs: <b>'+num(tw)+' W</b>. 120 V cable on the plan: <b>'+num(Math.round(pc.v))+' ft</b>. Transformers 480 V to 120 V: <b>'+xfs.length+'</b>.'+(function(){var n=0;cables.forEach(function(k){if(k.t==='v'){var a=node(k.a),b=node(k.b);if(a&&b&&ft(a,b)>MAX120)n++}});return n?' <span style="color:#e03131"><b>'+n+'</b> 120 V run'+(n>1?'s':'')+' over 150 ft: no more than 150 ft on air.</span>':''})()+'</p>';
  var sun=+prj("sun",4),aut=+prj("aut",3),vol=+prj("vol",12);
  h+='<div class="frm"><label>Sun hours/day <input data-pj="sun" type="number" min="1" step=".5" value="'+sun+'" style="width:70px"></label><label>Days without sun <input data-pj="aut" type="number" min="1" value="'+aut+'" style="width:70px"></label><label>System volts <select data-pj="vol"><option'+(vol===12?" selected":"")+'>12</option><option'+(vol===24?" selected":"")+'>24</option><option'+(vol===48?" selected":"")+'>48</option></select></label></div>';
  h+='<table class="pt"><tr><th>Pole</th><th>Cameras</th><th class="r">Load, W</th><th>Fed by</th><th class="r">Solar panel, W</th><th class="r">Battery, Ah</th></tr>';var any=false;
