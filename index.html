@@ -77,6 +77,12 @@ table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 #hint span{color:var(--mut,#6b6f76);font-size:13px;line-height:1.35;max-width:100%}
 #hint span:empty{display:none}
 body.present #hint,body.nohint #hint{display:none}
+#toolrow .gtab{font-size:11px!important;min-height:26px!important;padding:3px 2px!important;border:1px solid var(--bd)!important;border-radius:7px;background:transparent;font-weight:600}
+#toolrow .gtab.gon{background:var(--hov)!important;border-color:var(--acc)!important;color:var(--acc)}
+#mapwrap #toolrow .gh{display:none!important}
+#mapwrap #toolrow .sep{display:none}
+#mapwrap #toolrow #gtabs{display:flex;flex-direction:column;gap:3px;margin:3px 0;padding:3px 0;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+
 body.printing.pr-nosum #psum{display:none!important}
 body.printing.pr-nocam #psum .camlist{display:none!important}
 body.printing.pr-leg #plegend.has{display:block!important}
@@ -1194,5 +1200,18 @@ setTimeout(function(){orig.call(b)},50)};
 window.addEventListener("afterprint",function(){var c=document.body.classList;c.remove("pr-nosum","pr-nocam","pr-leg")});
 b.onclick=function(e){if(e&&e.preventDefault)e.preventDefault();show()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!d.hidden){d.hidden=true;e.stopPropagation()}},true)})();
+</script>
+<script>
+(function(){var tr=document.getElementById("toolrow"),tm=document.getElementById("tm");if(!tr||!tm)return;
+var G=[["low","Low voltage",["tp","ta","ctype","ti","tc","tf"]],["high","High voltage",["te","tz","tv","tu"]],["bld","Buildings",["to","ty","tn"]],["tools","Tools",["tr","tw","tb"]]];
+var cur="low";try{cur=localStorage.getItem("pp-tab")||"low"}catch(e){}
+var box=document.createElement("div");box.id="gtabs";tm.parentNode.insertBefore(box,tm.nextSibling);
+var map={};G.forEach(function(g){g[2].forEach(function(id){var el=document.getElementById(id);if(el)map[id]=g[0]})});
+G.forEach(function(g){var b=document.createElement("button");b.className="gtab";b.dataset.g=g[0];b.textContent=g[1];b.onclick=function(){show(g[0])};box.appendChild(b)});
+function show(g){cur=g;try{localStorage.setItem("pp-tab",g)}catch(e){}
+for(var id in map){var el=document.getElementById(id);if(el)el.classList.toggle("gh",map[id]!==g)}
+box.querySelectorAll(".gtab").forEach(function(b){b.classList.toggle("gon",b.dataset.g===g)})}
+show(cur);
+new MutationObserver(function(rs){for(var i=0;i<rs.length;i++){var r=rs[i],el=r.target;if(el.classList.contains("on")&&(" "+(r.oldValue||"")+" ").indexOf(" on ")<0&&map[el.id]&&map[el.id]!==cur){show(map[el.id]);return}}}).observe(tr,{attributes:true,attributeFilter:["class"],attributeOldValue:true,subtree:true})})();
 </script>
 </body></html>
