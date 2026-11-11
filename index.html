@@ -812,7 +812,7 @@ var ids={y:"ty",n:"tn",r:"tr",s:"ts",i:"ti",x:"tx",h:"th",m:"tm",p:"tp",e:"te",o
 function setTool(t){tool=t;start=null;if(t!=="f")fstart=null;if(t!=="w")draft=[];if(t!=="r"){rstart=null}if(t!=="s"){scl=null;document.getElementById("sclbox").hidden=true}tmp.clearLayers();map.getContainer().classList.toggle("measuring",t==="r"||t==="s"||(t==="w"&&mode==="plan"));map.getContainer().classList.toggle("hand",t==="h");for(var k in ids)document.getElementById(ids[k]).className=k===t?"on":"";document.getElementById("tv").className=(t==="v"&&!vair)?"on":"";document.getElementById("tu").className=(t==="v"&&vair)?"on":"";var isC=!!CAMS[t];document.getElementById("ta").className=isC?"on":"";if(isC)document.getElementById("ctype").value=t;refresh()}
 for(var kk in ids)(function(k){document.getElementById(ids[k]).onclick=function(){setTool(k)}})(kk);document.getElementById("tv").onclick=function(){vair=false;setTool("v")};document.getElementById("tu").onclick=function(){vair=true;setTool("v")};
 function rcMove(e){var t=e.target;if(!t||!t.closest)return false;if(t.closest("#toolrow,#ctxrow,input,textarea,select,#gdlist,.leaflet-popup"))return false;return true}
-function rcGo(){if(pasting){pasting=false;tmp.clearLayers()}rstart=null;start=null;draft=[];if(tool!=="m")setTool("m");refresh()}
+function rcGo(){if(pasting){pasting=false;tmp.clearLayers()}rstart=null;start=null;draft=[];fstart=null;clearSel();sel=null;if(tool!=="m")setTool("m");refresh()}
 window.addEventListener("contextmenu",function(e){if(!rcMove(e))return;e.preventDefault();e.stopPropagation();rcGo()},true);
 window.addEventListener("mousedown",function(e){if(e.button!==2||!rcMove(e))return;e.preventDefault();e.stopPropagation();rcGo()},true);
 window.addEventListener("auxclick",function(e){if(e.button===2&&rcMove(e)){e.preventDefault()}},true);
@@ -1325,7 +1325,7 @@ function placeCtx(){if(!cr||!mw)return;
 var on=!!sel&&getComputedStyle(cr).display!=="none"||(cr.classList.contains("dock")&&!!sel);
 var rl=$("toolrow"),anchor=$("ctype")||$("ta");
 if(cr.classList.contains("dock")){cr.classList.remove("dock");if(ctxHome)ctxHome.insertBefore(cr,ctxNext&&ctxNext.parentNode===ctxHome?ctxNext:null)}
-cr.classList.remove("float","up");cr.style.left=cr.style.top="";var tp=$("top");if(tp)cr.style.setProperty("--ctxtop",Math.round(tp.getBoundingClientRect().bottom+10)+"px")}
+cr.classList.remove("float","up");cr.style.left=cr.style.top="";cr.classList.toggle("hassel",!!sel);var tp=$("top");if(tp)cr.style.setProperty("--ctxtop",Math.round(tp.getBoundingClientRect().bottom+10)+"px")}
 map.on("move zoom moveend zoomend",placeCtx);window.addEventListener("scroll",placeCtx,true);window.addEventListener("resize",placeCtx);
 /* 4. hotkeys and tooltips */
 var HK=[["tm","M"],["tp","P"],["te","E"],["to","O"],["ta","C"],["ti","U"],["ty","S"],["tn","I"],["tz","T"],["tr","R"],["tw","F"],["tb","G"],["tc","1"],["tf","2"],["tv","3"],["tu","4"]];
@@ -1642,10 +1642,10 @@ td,th{border-color:var(--bd)}
 #mapwrap #toolrow{scrollbar-width:none}
 #mapwrap #toolrow::-webkit-scrollbar{display:none}
 /* selection panel: fixed bar at the top of the map */
-#mapwrap #ctxrow:not(.dock){position:fixed!important;left:50%!important;right:auto!important;transform:translateX(-50%);top:var(--ctxtop,70px)!important;z-index:1900!important;width:max-content;max-width:calc(100% - 260px);justify-content:center;padding:6px 8px!important;background:var(--card)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:16px!important;box-shadow:var(--sh)!important}
-#mapwrap #ctxrow:not(.dock) button,#mapwrap #ctxrow:not(.dock) select,#mapwrap #ctxrow:not(.dock) input{background:var(--fill);box-shadow:none;border:0}
-#mapwrap #ctxrow:not(.dock) button:hover{background:var(--hov)}
-#mapwrap #ctxrow:not(.dock)::before{display:none}
+#mapwrap #ctxrow.hassel{position:fixed!important;left:50%!important;right:auto!important;transform:translateX(-50%);top:var(--ctxtop,70px)!important;z-index:1900!important;width:max-content;max-width:calc(100% - 260px);justify-content:center;padding:6px 8px!important;background:var(--card)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:16px!important;box-shadow:var(--sh)!important}
+#mapwrap #ctxrow.hassel button,#mapwrap #ctxrow.hassel select,#mapwrap #ctxrow.hassel input{background:var(--fill);box-shadow:none;border:0}
+#mapwrap #ctxrow.hassel button:hover{background:var(--hov)}
+#mapwrap #ctxrow.hassel::before{display:none}
 @media print{#apple{display:none}}
 </style>
 <script>
