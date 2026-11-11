@@ -386,32 +386,44 @@ function camPos(c){var n=c.pole?node(c.pole):c;return n?{lat:n.lat,lng:n.lng}:nu
 function placeCam(c){var p=camPos(c);if(!p)return;var m=markers["c"+c.id],h=markers["h"+c.id];if(m)m.setLatLng(L.latLng(p.lat,p.lng));if(h)h.setLatLng(off(p,c.r,c.h))}
 function selCam(c){start=null;sel={t:"a",id:c.id}}
 function isMs(id){return msel.indexOf(id)>=0}
-function hasSel(){return msel.length+psel.length+bsel.length+fsel.length+apsel.length+xsel.length+cabsel.length>0}
-function clearSel(){msel=[];psel=[];bsel=[];fsel=[];apsel=[];xsel=[];cabsel=[]}
+var nsel=[],tsel=[],ssel=[];function hasSel(){return msel.length+psel.length+bsel.length+fsel.length+apsel.length+xsel.length+cabsel.length+nsel.length+tsel.length+ssel.length>0}
+function clearSel(){msel=[];psel=[];bsel=[];fsel=[];apsel=[];xsel=[];cabsel=[];nsel=[];tsel=[];ssel=[]}
 function cabById(i){for(var k=0;k<cabs.length;k++)if(cabs[k].id===i)return cabs[k];return null}
 function srcCams(){var ids=msel.length?msel.slice():(sel&&sel.t==="a"?[sel.id]:[]);cams.forEach(function(c){if(c.pole&&psel.indexOf(c.pole)>=0&&ids.indexOf(c.id)<0)ids.push(c.id)});return ids.map(camById).filter(function(c){return c})}
-function doCopy(){var as=apsel.map(apById).filter(function(x){return x}),xs=xsel.map(cubById).filter(function(x){return x}),cs=srcCams(),ps=psel.map(node).filter(function(p){return p}),bs=bsel.map(barById).filter(function(b){return b}),fs=fsel.map(fenceById).filter(function(f){return f}),ks=cabsel.map(cabById).filter(function(x){return x});
-if(!cs.length&&!ps.length&&!bs.length&&!fs.length&&!as.length&&!xs.length&&!ks.length)return false;
-var pts=[];ps.forEach(function(p){pts.push(p)});
-var G={poles:ps.map(function(p){return{o:p.id,lat:p.lat,lng:p.lng,e:p.e}}),cams:cs.map(function(c){var q=camPos(c),on=c.pole&&psel.indexOf(c.pole)>=0;if(!on)pts.push(q);return{p:on?c.pole:0,lat:q.lat,lng:q.lng,h:c.h,fov:c.fov,r:c.r,n:c.n,t:c.t}}),
-cables:cables.filter(function(k){return k.a&&k.b&&psel.indexOf(k.a)>=0&&psel.indexOf(k.b)>=0}).map(function(k){return{a:k.a,b:k.b,t:k.t}}),
-bars:bs.map(function(b){pts.push(b);return{lat:b.lat,lng:b.lng,h:b.h,len:b.len}}),cabs:ks.map(function(k){pts.push(k);return{lat:k.lat,lng:k.lng,name:k.name}}),aps:as.map(function(a){pts.push(a);return{lat:a.lat,lng:a.lng,r:a.r}}),cubs:xs.map(function(c){pts.push(c);return{lat:c.lat,lng:c.lng,w:c.w,d:c.d,h:c.h,k:c.k}}),fences:fs.map(function(f){f.pts.forEach(function(p){pts.push(p)});return{c:f.c,k:f.k,pts:f.pts.map(function(p){return{lat:p.lat,lng:p.lng}})}})};
+function selKeys(cs){var K={};psel.forEach(function(i){K[i]=1});apsel.forEach(function(i){K["a"+i]=1});cabsel.forEach(function(i){K["c"+i]=1});xsel.forEach(function(i){K["x"+i]=1});nsel.forEach(function(i){K["n"+i]=1});tsel.forEach(function(i){K["t"+i]=1});ssel.forEach(function(i){K["s"+i]=1});cs.forEach(function(c){K["m"+c.id]=1});return K}
+function cl1(o){var r=JSON.parse(JSON.stringify(o));delete r.id;return r}
+function doCopy(){var as=apsel.map(apById).filter(function(x){return x}),xs=xsel.map(cubById).filter(function(x){return x}),cs=srcCams(),ps=psel.map(node).filter(function(p){return p}),bs=bsel.map(barById).filter(function(b){return b}),fs=fsel.map(fenceById).filter(function(f){return f}),ks=cabsel.map(cabById).filter(function(x){return x}),ns=nsel.map(function(i){return node("n"+i)}).filter(function(x){return x}),ts=tsel.map(function(i){return node("t"+i)}).filter(function(x){return x}),ss=ssel.map(function(i){return node("s"+i)}).filter(function(x){return x});
+if(!cs.length&&!ps.length&&!bs.length&&!fs.length&&!as.length&&!xs.length&&!ks.length&&!ns.length&&!ts.length&&!ss.length)return false;
+var pts=[],K=selKeys(cs),inK=function(k){return K[k]===1};
+ps.forEach(function(p){pts.push(p)});
+var G={poles:ps.map(function(p){var r=cl1(p);r.o=p.id;return r}),cams:cs.map(function(c){var q=camPos(c),on=c.pole&&psel.indexOf(c.pole)>=0;if(!on)pts.push(q);return{o:c.id,p:on?c.pole:0,lat:q.lat,lng:q.lng,h:c.h,fov:c.fov,r:c.r,n:c.n,t:c.t}}),
+cables:cables.filter(function(k){return k.a!==undefined&&k.b!==undefined&&k.a!==null&&k.b!==null&&inK(k.a)&&inK(k.b)}).map(function(k){var r={a:k.a,b:k.b,t:k.t};if(k.air)r.air=1;return r}),
+wls:wls.filter(function(k){return inK(k.a)&&inK(k.b)}).map(function(k){return{a:k.a,b:k.b,sp:k.sp}}),
+fibs:fibs.filter(function(f){return cabsel.indexOf(f.a)>=0&&cabsel.indexOf(f.b)>=0}).map(function(f){return{a:f.a,b:f.b}}),
+bars:bs.map(function(b){pts.push(b);return{lat:b.lat,lng:b.lng,h:b.h,len:b.len}}),cabs:ks.map(function(k){pts.push(k);var r=cl1(k);r.o=k.id;return r}),aps:as.map(function(a){pts.push(a);var r=cl1(a);r.o=a.id;return r}),cubs:xs.map(function(c){pts.push(c);var r=cl1(c);r.o=c.id;return r}),
+nets:ns.map(function(c){pts.push(c);var r=cl1(c);r.o=c.id;return r}),xfs:ts.map(function(c){pts.push(c);var r=cl1(c);r.o=c.id;return r}),srvs:ss.map(function(c){pts.push(c);var r=cl1(c);r.o=c.id;return r}),
+fences:fs.map(function(f){f.pts.forEach(function(p){pts.push(p)});return{c:f.c,k:f.k,pts:f.pts.map(function(p){return{lat:p.lat,lng:p.lng}})}})};
 var la=pts.map(function(p){return p.lat}),lo=pts.map(function(p){return p.lng});
 G.c={lat:(Math.min.apply(null,la)+Math.max.apply(null,la))/2,lng:(Math.min.apply(null,lo)+Math.max.apply(null,lo))/2};clip=G;return true}
-function doPaste(at){if(!clip||!at)return;var G=clip,dl=at.lat-G.c.lat,dg=at.lng-G.c.lng,map1={};clearSel();
-G.poles.forEach(function(p){var n={id:nid++,lat:p.lat+dl,lng:p.lng+dg,e:p.e};poles.push(n);map1[p.o]=n.id;psel.push(n.id)});
-G.cables.forEach(function(k){if(map1[k.a]&&map1[k.b])cables.push({id:cid++,a:map1[k.a],b:map1[k.b],t:k.t})});
-G.cams.forEach(function(c){var n={id:mid++,pole:c.p?map1[c.p]:null,lat:c.lat+dl,lng:c.lng+dg,h:c.h,fov:c.fov,r:c.r};if(c.n)n.n=c.n;if(c.t)n.t=c.t;cams.push(n);msel.push(n.id)});
+function doPaste(at){if(!clip||!at)return;var G=clip,dl=at.lat-G.c.lat,dg=at.lng-G.c.lng,map1={},KM={};clearSel();
+G.poles.forEach(function(p){var n=JSON.parse(JSON.stringify(p));delete n.o;n.id=nid++;n.lat=p.lat+dl;n.lng=p.lng+dg;poles.push(n);map1[p.o]=n.id;KM[p.o]=n.id;psel.push(n.id)});
+var nc=[];
+G.cams.forEach(function(c){var n={id:mid++,pole:c.p?map1[c.p]:null,lat:c.lat+dl,lng:c.lng+dg,h:c.h,fov:c.fov,r:c.r};if(c.n)n.n=c.n;if(c.t)n.t=c.t;cams.push(n);msel.push(n.id);if(c.o)KM["m"+c.o]="m"+n.id});
 G.bars.forEach(function(b){var n={id:uid++,lat:b.lat+dl,lng:b.lng+dg,h:b.h,len:b.len};bars.push(n);bsel.push(n.id)});
-(G.cabs||[]).forEach(function(k){var n={id:uid++,lat:k.lat+dl,lng:k.lng+dg,name:k.name};cabs.push(n);cabsel.push(n.id)});
-(G.aps||[]).forEach(function(a){var n={id:uid++,lat:a.lat+dl,lng:a.lng+dg,r:a.r};aps.push(n);apsel.push(n.id)});
-(G.cubs||[]).forEach(function(c){var n={id:uid++,lat:c.lat+dl,lng:c.lng+dg,w:c.w,d:c.d,h:c.h,k:c.k};cubs.push(n);xsel.push(n.id)});
+var cabMap={};
+function add(list,arr,sel1,pre){(list||[]).forEach(function(o){var n=JSON.parse(JSON.stringify(o));delete n.o;n.id=uid++;n.lat=o.lat+dl;n.lng=o.lng+dg;arr.push(n);sel1.push(n.id);KM[pre+o.o]=pre+n.id;if(pre==="c")cabMap[o.o]=n.id})}
+add(G.cabs,cabs,cabsel,"c");add(G.aps,aps,apsel,"a");add(G.cubs,cubs,xsel,"x");add(G.nets,nets,nsel,"n");add(G.xfs,xfs,tsel,"t");add(G.srvs,srvs,ssel,"s");
+aps.forEach(function(a){if(apsel.indexOf(a.id)>=0&&a.cab&&cabMap[a.cab])a.cab=cabMap[a.cab]});
+cams.forEach(function(a){if(msel.indexOf(a.id)>=0&&a.cab&&cabMap[a.cab])a.cab=cabMap[a.cab]});
+G.cables.forEach(function(k){var a=KM[k.a],b=KM[k.b];if(a!==undefined&&b!==undefined){var n={id:cid++,a:a,b:b,t:k.t};if(k.air)n.air=1;cables.push(n)}});
+(G.wls||[]).forEach(function(k){var a=KM[k.a],b=KM[k.b];if(a!==undefined&&b!==undefined)wls.push({id:cid++,a:a,b:b,sp:k.sp})});
+(G.fibs||[]).forEach(function(f){if(cabMap[f.a]&&cabMap[f.b])fibs.push({id:uid++,a:cabMap[f.a],b:cabMap[f.b]})});
 G.fences.forEach(function(f){var n={id:uid++,c:f.c,k:f.k,pts:f.pts.map(function(p){return{lat:p.lat+dl,lng:p.lng+dg}})};fences.push(n);fsel.push(n.id)});
 sel=null;pasting=false;save();refresh()}
 function areaSel(b){clearSel();poles.forEach(function(p){if(b.contains([p.lat,p.lng]))psel.push(p.id)});
 cams.forEach(function(c){var q=camPos(c);if(q&&b.contains([q.lat,q.lng]))msel.push(c.id)});
 bars.forEach(function(x){if(b.contains([x.lat,x.lng]))bsel.push(x.id)});
-fences.forEach(function(f){if(f.pts.every(function(p){return b.contains([p.lat,p.lng])}))fsel.push(f.id)});aps.forEach(function(x){if(b.contains([x.lat,x.lng]))apsel.push(x.id)});cubs.forEach(function(x){if(b.contains([x.lat,x.lng]))xsel.push(x.id)});cabs.forEach(function(x){if(b.contains([x.lat,x.lng]))cabsel.push(x.id)});sel=null}
+fences.forEach(function(f){if(f.pts.every(function(p){return b.contains([p.lat,p.lng])}))fsel.push(f.id)});aps.forEach(function(x){if(b.contains([x.lat,x.lng]))apsel.push(x.id)});cubs.forEach(function(x){if(b.contains([x.lat,x.lng]))xsel.push(x.id)});cabs.forEach(function(x){if(b.contains([x.lat,x.lng]))cabsel.push(x.id)});nets.forEach(function(x){if(b.contains([x.lat,x.lng]))nsel.push(x.id)});xfs.forEach(function(x){if(b.contains([x.lat,x.lng]))tsel.push(x.id)});srvs.forEach(function(x){if(b.contains([x.lat,x.lng]))ssel.push(x.id)});sel=null}
 function areaOff(){area=false;astart=null;map.dragging.enable();map.getContainer().style.touchAction="";if(arect){map.removeLayer(arect);arect=null}}
 function camSvg(col){col=col||"#1a73e8";var S='<path d="M3 14L29 5Q32 4 33 7L35 14Q35.5 16 33.5 16.5L9 22Q4 23 3 19Z"/><path d="M8 21L33 15L34.5 18Q35 20 33 21L12 27Q8 28 7 25Z"/><circle cx="21" cy="26.5" r="3.6"/><rect x="19.8" y="27" width="2.4" height="5.5"/><rect x="19.8" y="30" width="12" height="2.5"/><rect x="31" y="23" width="3.2" height="10.5" rx="1"/>';
 return '<svg width="30" height="26" viewBox="0 0 40 34"><g fill="#fff" stroke="#fff" stroke-width="3.6" stroke-linejoin="round">'+S+'</g><g fill="'+col+'">'+S+'</g><circle cx="21" cy="26.5" r="1.7" fill="#fff"/><path d="M5.5 16.8L33 9.2" stroke="#fff" stroke-width="1" fill="none"/></svg>'}
@@ -614,7 +626,7 @@ function escN(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){retur
 var NNAME={ns:"Sector antenna",nc:"Client AP",nw:"Gigabit switch"};
 function nIcon(c,isSel){var T={ns:["#0891b2",'<path d="M12 20L4 6a10 10 0 0 1 16 0z" fill="#fff" fill-opacity=".25"/><path d="M8 3.5a6 6 0 0 1 8 0M12 20v2"/>'],nc:["#2563eb",'<path d="M5 11a10 10 0 0 1 14 0M8 14.5a6 6 0 0 1 8 0"/><circle cx="12" cy="18.5" r="1.6" fill="#fff"/>'],nw:["#475569",'<rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01M11 12h.01M15 12h.01M19 12h.01" stroke-width="2.6"/>']}[c.k]||["#475569",""];
 return L.divIcon({className:"",html:'<div class="xfm'+(isSel?" sel":"")+(start==="n"+c.id?" sel":"")+'"><div class="xfb" style="background:'+T[0]+'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+T[1]+'</svg></div><span>'+escN(c.name||NNAME[c.k])+'</span></div>',iconSize:[0,0],iconAnchor:[0,0]})}
-function mkNet(c){var isSel=sel&&sel.t==="n"&&sel.id===c.id;
+function mkNet(c){var isSel=(sel&&sel.t==="n"&&sel.id===c.id)||nsel.indexOf(c.id)>=0;
 var m=L.marker(L.latLng(c.lat,c.lng),{icon:nIcon(c,isSel),draggable:canDrag(),zIndexOffset:1360});
 m.on("click",function(e){if(tool==="c"||tool==="f"){onNode("n"+c.id,e);return}L.DomEvent.stopPropagation(e);
  if(tool==="nl"){var id="n"+c.id;if(c.k==="nw"){gpsMsg("A wireless link goes between a sector antenna and a Client AP.");return}if(start===null){start=id;refresh();return}if(start!==id){var a=start,A=node(a);if(A&&A.k!=="nw"&&A.k!==c.k&&!wls.some(function(k){return(k.a===a&&k.b===id)||(k.a===id&&k.b===a)})){var k={id:cid++,a:a,b:id,sp:"2.5G"};wls.push(k);clearSel();sel={t:"wl",id:k.id}}else if(A&&A.k===c.k)gpsMsg("Link a sector antenna with a Client AP.")}start=null;save();refresh();return}
@@ -624,14 +636,14 @@ m.on("drag",function(){var q=m.getLatLng();c.lat=q.lat;c.lng=q.lng;drawLines()})
 m.on("dragend",function(){save();refresh()});
 m.addTo(map);markers["n"+c.id]=m}
 function xfById(i){for(var k=0;k<xfs.length;k++)if(xfs[k].id===i)return xfs[k];return null}
-function mkXf(c){var isSel=sel&&sel.t==="xf"&&sel.id===c.id;
+function mkXf(c){var isSel=(sel&&sel.t==="xf"&&sel.id===c.id)||tsel.indexOf(c.id)>=0;
 var m=L.marker(L.latLng(c.lat,c.lng),{icon:xfIcon(c,isSel),draggable:canDrag(),zIndexOffset:1370});
 m.on("click",function(e){if(tool==="v"){onNode("t"+c.id,e);return}L.DomEvent.stopPropagation(e);start=null;clearSel();sel={t:"xf",id:c.id};save();refresh()});
 m.on("dragstart",function(){start=null;sel={t:"xf",id:c.id}});
 m.on("drag",function(){var q=m.getLatLng();c.lat=q.lat;c.lng=q.lng;drawLines()});
 m.on("dragend",function(){save();refresh()});
 m.addTo(map);markers["xf"+c.id]=m}
-function mkSrv(c){var isSel=sel&&sel.t==="srv"&&sel.id===c.id;
+function mkSrv(c){var isSel=(sel&&sel.t==="srv"&&sel.id===c.id)||ssel.indexOf(c.id)>=0;
 var m=L.marker(L.latLng(c.lat,c.lng),{icon:srvIcon(c,isSel),draggable:canDrag(),zIndexOffset:1370});
 m.on("click",function(e){if(tool==="v"){onNode("s"+c.id,e);return}L.DomEvent.stopPropagation(e);start=null;clearSel();sel={t:"srv",id:c.id};save();refresh()});
 m.on("dragstart",function(){start=null;sel={t:"srv",id:c.id}});
@@ -811,7 +823,7 @@ document.getElementById("fcol").onchange=function(){fenceColor=this.value;var f=
 document.getElementById("cnl").onclick=function(){draft=[];refresh()};
 document.getElementById("sw").onclick=function(){if(!sel)return;
 if(sel.t==="p"){var p=node(sel.id);if(p)p.e=p.e?0:1}else cables.forEach(function(k){if(k.id===sel.id){if(k.t==="f"){k.t="v";delete k.air}else if(k.t==="v"){if(k.air){k.t="c";delete k.air}else k.air=1}else k.t="f"}});save();refresh()};
-document.getElementById("del").onclick=function(){if(hasSel()){var dp=psel.slice();poles=poles.filter(function(p){return dp.indexOf(p.id)<0});cables=cables.filter(function(k){return dp.indexOf(k.a)<0&&dp.indexOf(k.b)<0});cams=cams.filter(function(c){return !isMs(c.id)&&dp.indexOf(c.pole)<0});bars=bars.filter(function(b){return bsel.indexOf(b.id)<0});fences=fences.filter(function(f){return fsel.indexOf(f.id)<0});aps=aps.filter(function(a){return apsel.indexOf(a.id)<0});cubs=cubs.filter(function(c){return xsel.indexOf(c.id)<0});cabs=cabs.filter(function(c){return cabsel.indexOf(c.id)<0});fibs=fibs.filter(function(f){return cabById(f.a)&&cabById(f.b)});clearSel();sel=null;save();refresh();return}if(!sel)return;
+document.getElementById("del").onclick=function(){if(hasSel()){var dp=psel.slice();poles=poles.filter(function(p){return dp.indexOf(p.id)<0});cables=cables.filter(function(k){return dp.indexOf(k.a)<0&&dp.indexOf(k.b)<0});cams=cams.filter(function(c){return !isMs(c.id)&&dp.indexOf(c.pole)<0});bars=bars.filter(function(b){return bsel.indexOf(b.id)<0});fences=fences.filter(function(f){return fsel.indexOf(f.id)<0});aps=aps.filter(function(a){return apsel.indexOf(a.id)<0});cubs=cubs.filter(function(c){return xsel.indexOf(c.id)<0});cabs=cabs.filter(function(c){return cabsel.indexOf(c.id)<0});nets=nets.filter(function(c){return nsel.indexOf(c.id)<0});xfs=xfs.filter(function(c){return tsel.indexOf(c.id)<0});srvs=srvs.filter(function(c){return ssel.indexOf(c.id)<0});fibs=fibs.filter(function(f){return cabById(f.a)&&cabById(f.b)});cables=cables.filter(function(k){return node(k.a)&&node(k.b)});wls=wls.filter(function(k){return node(k.a)&&node(k.b)});clearSel();sel=null;save();refresh();return}if(!sel)return;
 if(sel.t==="p"){var i=sel.id;poles=poles.filter(function(p){return p.id!==i});cables=cables.filter(function(k){return k.a!==i&&k.b!==i});cams=cams.filter(function(c){return c.pole!==i})}
 else if(sel.t==="a"){var jj=sel.id;cams=cams.filter(function(c){return c.id!==jj})}
 else if(sel.t==="w"){var jw=sel.id;fences=fences.filter(function(f){return f.id!==jw})}
