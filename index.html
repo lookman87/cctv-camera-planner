@@ -69,7 +69,7 @@ table.ct td{padding:3px 12px 3px 0;text-align:right;white-space:nowrap}
 table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 #mapwrap{position:relative}
 .pill{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--p,.7));display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;border-radius:7px;color:#fff;font:600 11px/1 system-ui;white-space:nowrap;box-shadow:0 0 0 1.5px #fff,0 1px 4px rgba(0,0,0,.5);opacity:.94}
-.offc svg{display:block}.offc{position:absolute;left:0;top:0;width:var(--ow,70px);aspect-ratio:20/7;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}.xfm{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--p,.7))}.xfb{width:34px;height:34px;border-radius:9px;background:#ea580c;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}.xfm span{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;background:#1e293b;color:#fff;font:600 11px/1 system-ui;padding:3px 6px;border-radius:6px;white-space:nowrap}.xfm.sel .xfb{box-shadow:0 0 0 2px #fff,0 0 0 4px #00e5ff}
+.offc svg{display:block}.offc.sel svg{outline:2px solid #00e5ff;outline-offset:2px}#oawrap[hidden]{display:none!important}#oawrap{display:inline-flex;gap:4px;align-items:center;font-size:12px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:2px 6px;box-shadow:var(--sh)}#oawrap input{width:62px!important}.orot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #00a5bd;box-shadow:0 0 0 1px #000;cursor:grab}.offc{position:absolute;left:0;top:0;width:var(--ow,70px);aspect-ratio:20/7;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}.xfm{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--p,.7))}.xfb{width:34px;height:34px;border-radius:9px;background:#ea580c;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}.xfm span{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;background:#1e293b;color:#fff;font:600 11px/1 system-ui;padding:3px 6px;border-radius:6px;white-space:nowrap}.xfm.sel .xfb{box-shadow:0 0 0 2px #fff,0 0 0 4px #00e5ff}
 .pill.xf{background:#1e293b;padding:4px 10px 4px 7px;font-size:12px;border-radius:9px;box-shadow:0 0 0 1.5px #fb923c,0 1px 4px rgba(0,0,0,.5)}
 .pill.srv{background:#1e293b;padding:4px 10px 4px 7px;font-size:12px;border-radius:9px;box-shadow:0 0 0 1.5px #fde68a,0 1px 4px rgba(0,0,0,.5)}
 .pill.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px #00e5ff}
@@ -349,7 +349,7 @@ function isPw(p){return !!(p.e||FED[p.id])}
 function nearest(p){var best=office,bd=office?ft(office,p):1e12;cabs.forEach(function(c){var d=ft(c,p);if(d<bd){bd=d;best=c}});poles.forEach(function(q){if(isPw(q)&&q!==p){var d=ft(q,p);if(d<bd){bd=d;best=q}}});xfs.forEach(function(x){var d=ft(x,p);if(d<bd){bd=d;best=x}});return best?{q:best,d:bd}:null}
 var OFFSVG='<svg viewBox="0 0 200 70" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="198" height="68" fill="#f1f3f5" stroke="#1f2937" stroke-width="3"/><rect x="5" y="5" width="190" height="60" fill="#fff" stroke="#1f2937" stroke-width="1.2"/><g fill="none" stroke="#1f2937" stroke-width="1.6"><path d="M46 5V40M46 56V65"/><rect x="7" y="7" width="34" height="24" stroke-width="1.2"/><circle cx="24" cy="19" r="5.5" stroke-width="1"/><circle cx="24" cy="19" r="1.4" stroke-width=".8"/><rect x="8" y="36" width="9" height="14" rx="3" stroke-width="1.1"/><ellipse cx="14" cy="46" rx="5.5" ry="6" stroke-width="1.1"/><rect x="7" y="54" width="14" height="9" rx="3.5" stroke-width="1.1"/><path d="M46 56L30 56M46 40A16 16 0 0 0 30 56" stroke-width=".9"/></g><g fill="#fff" stroke="#1f2937" stroke-width="1"><rect x="92" y="0" width="40" height="6"/><rect x="146" y="0" width="46" height="6"/><rect x="146" y="64" width="46" height="6"/><rect x="8" y="64" width="22" height="6"/><rect x="100" y="64" width="28" height="6" stroke-width=".6"/></g><g fill="none" stroke="#1f2937" stroke-width=".9"><path d="M100 64V36M128 64A28 28 0 0 0 100 36"/></g><text x="122" y="36" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#868e96">OFFICE</text></svg>';
 function icon(n,id){
-if(id===0)return L.divIcon({className:"",html:'<div class="offc">'+OFFSVG+'</div>',iconSize:[0,0],iconAnchor:[0,0]});
+if(id===0)return L.divIcon({className:"",html:'<div class="offc'+(sel&&sel.t==="o"?' sel':'')+'" style="transform:translate(-50%,-50%) rotate('+((n&&n.rot)||0)+'deg)">'+OFFSVG+'</div>',iconSize:[0,0],iconAnchor:[0,0]});
 if(n.w)return L.divIcon({className:"",html:'<div class="pole p'+(start===id?" st":"")+'" style="width:10px;height:10px"></div>',iconSize:[10,10],iconAnchor:[5,5]});
 var c=(isPw(n)?"pole e":"pole p")+((sel&&sel.t==="p"&&sel.id===id)||psel.indexOf(id)>=0?" sel":"")+(start===id?" st":""),z=isPw(n)?26:20;
 var inner=isPw(n)?'<svg width="14" height="14" viewBox="-7 -8 14 16"><polygon points="2,-8 -4,1 0,1 -2,8 4,-1 0,-1" fill="#fff"/></svg>':"";
@@ -362,7 +362,7 @@ if(!dup){var k={id:cid++,a:a,b:id,t:tool};if(tool==="v"&&vair)k.air=1;cables.pus
 else start=null}
 else if(tool==="w"){var np=node(id);if(np){draft.push({lat:np.lat,lng:np.lng});sel=null;start=null;drawLines();drawMarkers();status()}return}
 else if(CAMS[tool]){start=null;if(id!==0){var n0=cams.filter(function(c){return c.pole===id}).length,cm=newCam(tool,id,node(id).lat,node(id).lng);if(tool==="a")cm.h=(n0*90)%360;cams.push(cm);sel={t:"a",id:cm.id}}}
-else{start=null;if(id!==0)sel={t:"p",id:id}}
+else{start=null;if(id!==0)sel={t:"p",id:id};else if(tool==="m"||tool==="h"){clearSel();sel={t:"o"}}}
 save();refresh()}
 function mk(n,id){var m=L.marker(ll(n),{icon:icon(n,id),draggable:canDrag(),zIndexOffset:id===0?500:1000});
 m.on("click",function(e){onNode(id,e)});
@@ -785,7 +785,7 @@ if(tool==="w"){draft.push({lat:e.latlng.lat,lng:e.latlng.lng});sel=null;start=nu
 if(tool==="b"){var nb={id:uid++,lat:e.latlng.lat,lng:e.latlng.lng,h:90,len:4.5};bars.push(nb);sel={t:"b",id:nb.id};start=null;save();refresh();return}
 if(tool==="h"||tool==="m"){if(sel||start!==null||(!multi&&hasSel())){sel=null;start=null;if(!multi)clearSel();refresh()}return}
 if(tool==="c"||tool==="f"||tool==="v"){var wp={id:nid++,lat:e.latlng.lat,lng:e.latlng.lng,e:0,w:1},had=start!==null;poles.push(wp);onNode(wp.id,e);if(had&&start===null)start=wp.id;save();refresh();return}
-else if(tool==="o"){office={lat:e.latlng.lat,lng:e.latlng.lng};sel=null}
+else if(tool==="o"){office={lat:e.latlng.lat,lng:e.latlng.lng,rot:office&&office.rot||0};clearSel();sel={t:"o"}}
 else{var p={id:nid++,lat:e.latlng.lat,lng:e.latlng.lng,e:tool==="e"?1:0};
 var cp0=map.latLngToContainerPoint(e.latlng),bk=null,bd=14;
 cables.forEach(function(k){var A=node(k.a),B=node(k.b);if(!A||!B)return;var pa=map.latLngToContainerPoint(ll(A)),pb=map.latLngToContainerPoint(ll(B)),dx=pb.x-pa.x,dy=pb.y-pa.y,l2=dx*dx+dy*dy;if(!l2)return;var u=Math.max(0,Math.min(1,((cp0.x-pa.x)*dx+(cp0.y-pa.y)*dy)/l2)),qx=pa.x+u*dx,qy=pa.y+u*dy,dd=Math.hypot(cp0.x-qx,cp0.y-qy);if(dd<bd&&u>.02&&u<.98){bd=dd;bk={k:k,x:qx,y:qy}}});
@@ -818,6 +818,7 @@ else if(sel.t==="w"){var jw=sel.id;fences=fences.filter(function(f){return f.id!
 else if(sel.t==="b"){var jb=sel.id;bars=bars.filter(function(g){return g.id!==jb})}
 else if(sel.t==="ap"){var ja=sel.id;aps=aps.filter(function(g){return g.id!==ja})}
 else if(sel.t==="x"){var jx=sel.id;cubs=cubs.filter(function(g){return g.id!==jx})}
+else if(sel.t==="o"){office=null;cables=cables.filter(function(k){return k.a!==0&&k.b!==0})}
 else if(sel.t==="n"){var jn=sel.id,kn="n"+jn;nets=nets.filter(function(g){return g.id!==jn});cables=cables.filter(function(k){return k.a!==kn&&k.b!==kn});wls=wls.filter(function(k){return k.a!==kn&&k.b!==kn})}
 else if(sel.t==="wl"){var jw=sel.id;wls=wls.filter(function(k){return k.id!==jw})}
 else if(sel.t==="xf"){var jz=sel.id;xfs=xfs.filter(function(g){return g.id!==jz});cables=cables.filter(function(k){return k.a!=="t"+jz&&k.b!=="t"+jz})}
@@ -1473,6 +1474,24 @@ var _dl3=drawLines;drawLines=function(){_dl3.apply(this,arguments);
   if(tool==="m")pl.on("click",function(e){L.DomEvent.stopPropagation(e);clearSel();start=null;sel={t:"wl",id:k.id};save();refresh()});
   var m=L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2);
   L.marker(m,{interactive:false,icon:L.divIcon({className:"",html:'<div class="len" style="color:#d0bfff">'+escN(k.sp||"2.5G")+' wireless link, '+Math.round(d)+' ft ('+Math.round(d/FTM)+' m)</div>',iconSize:[260,14],iconAnchor:[130,20]})}).addTo(lines)})};
+})();
+</script>
+<script>
+/* ---- office rotation ---- */
+(function(){
+var cg=document.getElementById("ctxgrp"),w=document.createElement("span");w.id="oawrap";w.hidden=true;w.innerHTML='Office angle <input id="oa" type="number" step="5" title="Rotation in degrees"> &deg; <button id="oa0" title="Back to horizontal">Reset</button>';if(cg)cg.appendChild(w);
+function ow(){var v=parseFloat(map.getContainer().style.getPropertyValue("--ow"));return v>0?v:70}
+function apply(r){office.rot=((r%360)+360)%360;var el=document.querySelector(".offc");if(el)el.style.transform="translate(-50%,-50%) rotate("+office.rot+"deg)"}
+function hpos(){var c=map.latLngToContainerPoint(L.latLng(office.lat,office.lng)),a=(office.rot||0)*Math.PI/180,d=ow()/2+26;return map.containerPointToLatLng(L.point(c.x+Math.cos(a)*d,c.y+Math.sin(a)*d))}
+var _dl4=drawLines;drawLines=function(){_dl4.apply(this,arguments);
+ if(!(sel&&sel.t==="o"&&office))return;
+ var hm=L.marker(hpos(),{draggable:true,zIndexOffset:2000,icon:L.divIcon({className:"",html:'<div class="orot" title="Drag to rotate"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(lines);
+ hm.on("drag",function(e){var c=map.latLngToContainerPoint(L.latLng(office.lat,office.lng)),p=map.latLngToContainerPoint(hm.getLatLng()),a=Math.atan2(p.y-c.y,p.x-c.x)*180/Math.PI;a=Math.round(a);[0,90,180,270,360].forEach(function(s){if(Math.abs(((a-s+540)%360)-180)<4)a=s});apply(a);var i=document.getElementById("oa");if(i)i.value=Math.round(office.rot)});
+ hm.on("dragend",function(){save();refresh()})};
+function upd(){var show=sel&&sel.t==="o"&&office;w.hidden=!show;if(show&&document.activeElement.id!=="oa")document.getElementById("oa").value=Math.round(office.rot||0)}
+var _rf5=refresh;refresh=function(){var r=_rf5.apply(this,arguments);try{upd()}catch(e){}return r};
+document.getElementById("oa").onchange=function(){if(!office)return;apply(+this.value||0);save();refresh()};
+document.getElementById("oa0").onclick=function(){if(!office)return;apply(0);save();refresh()};
 })();
 </script>
 </body></html>
