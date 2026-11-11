@@ -1585,7 +1585,40 @@ body.railmin #mapwrap #toolrow{width:56px}
 #ctxrow.bar.float,#ctxrow.float{background:var(--card)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:16px!important;box-shadow:var(--sh)!important}
 #ctxrow button{border-radius:9px}
 #oawrap,#mtwrap{background:var(--fill)!important;border:0!important;box-shadow:none!important;border-radius:9px}
-#sumbar{background:rgba(28,28,30,.82)!important;-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border-radius:16px!important;border:.5px solid rgba(255,255,255,.12)}
+#sumbar,#info{background:var(--card)!important;color:var(--fg)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:18px!important;box-shadow:var(--sh)!important}
+#sumbar{height:42px!important;padding:0 18px!important;font-size:14px!important;font-weight:500;bottom:12px!important}
+#sumbar b,#info b{color:var(--fg)!important;font-weight:600}
+#sumbar .warn,#info .warn{color:#ff3b30!important}
+#sumbar:hover{background:var(--cardS)!important}
+#info{background:color-mix(in srgb,var(--cardS) 94%,transparent)!important}
+#top details.dd>summary,#top button{color:var(--fg)}
+#top button#find{color:#fff}
+#info{bottom:62px!important;padding:14px 18px!important;font-size:14px;line-height:1.5}
+#info h3,#info h4{font-weight:600;letter-spacing:-.02em}
+#info .cl{padding:2px 0}
+#info .sd,#sumbar .sd{border-radius:50%}
+#info table{border-collapse:separate;border-spacing:0}
+#info td,#info th{border-bottom:.5px solid var(--bd)!important;padding:6px 8px}
+#info hr{border:0;border-top:.5px solid var(--bd)}
+#info input,#info select{background:var(--fill);border-radius:8px;padding:4px 8px;color:var(--fg)}
+#hint{margin:8px 6px 0}
+#hint span{color:var(--mut)!important;font-size:12.5px}
+#top{padding-top:max(8px,env(safe-area-inset-top))!important;padding-bottom:4px!important}
+#top button,#top select,#top input{font-size:13.5px;padding:5px 12px;border-radius:10px}
+#top input{background:var(--fill)}
+#top #q{border-radius:12px}
+#top button#find,#top #go{background:var(--acc);color:#fff}
+#top .bar>span,#top .bar>small{color:var(--mut)}
+dialog,.dlg{background:var(--card)!important;color:var(--fg);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:20px!important;box-shadow:var(--sh)!important}
+dialog::backdrop{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+table{border-collapse:separate;border-spacing:0}
+th{font-weight:600;color:var(--mut);font-size:12px;letter-spacing:.02em}
+td,th{border-color:var(--bd)}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(120,120,128,.4);border-radius:10px;border:3px solid transparent;background-clip:content-box}::-webkit-scrollbar-track{background:transparent}
+.leaflet-control-attribution{background:var(--card)!important;color:var(--mut)!important;border-radius:8px 0 0 0;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.leaflet-control-attribution a{color:var(--acc)!important}
+.leaflet-control-scale-line{background:var(--card)!important;color:var(--fg)!important;border-color:var(--mut)!important;border-radius:0 0 6px 6px}
+#mapwrap>div[id^="sel"],#mapwrap #msbar button,#ms,#sa{border-radius:11px}
 .leaflet-bar{border:0!important;border-radius:12px!important;overflow:hidden;box-shadow:var(--sh)!important;background:var(--card)!important;-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
 .leaflet-bar a,.leaflet-bar a:hover{background:transparent!important;color:var(--fg)!important;border-bottom:.5px solid var(--bd)!important;width:36px!important;height:36px!important;line-height:36px!important;font-weight:300;font-size:20px}
 .leaflet-bar a:last-child{border-bottom:0!important}
