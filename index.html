@@ -1324,7 +1324,6 @@ var ctxHome=cr?cr.parentNode:null,ctxNext=cr?cr.nextSibling:null;
 function placeCtx(){if(!cr||!mw)return;
 var on=!!sel&&getComputedStyle(cr).display!=="none"||(cr.classList.contains("dock")&&!!sel);
 var rl=$("toolrow"),anchor=$("ctype")||$("ta");
-if(sel&&rl&&anchor&&anchor.parentNode===rl){if(!cr.classList.contains("dock")||cr.previousElementSibling!==anchor){rl.insertBefore(cr,anchor.nextSibling)}cr.classList.add("dock");cr.classList.remove("float","up");cr.style.left=cr.style.top="";return}
 if(cr.classList.contains("dock")){cr.classList.remove("dock");if(ctxHome)ctxHome.insertBefore(cr,ctxNext&&ctxNext.parentNode===ctxHome?ctxNext:null)}
 cr.classList.remove("float","up");cr.style.left=cr.style.top=""}
 map.on("move zoom moveend zoomend",placeCtx);window.addEventListener("resize",placeCtx);
@@ -1642,6 +1641,11 @@ td,th{border-color:var(--bd)}
 #mapwrap #toolrow>*{flex:none!important}
 #mapwrap #toolrow{scrollbar-width:none}
 #mapwrap #toolrow::-webkit-scrollbar{display:none}
+/* selection panel: fixed bar at the top of the map */
+#mapwrap #ctxrow:not(.dock){left:50%!important;right:auto!important;transform:translateX(-50%);top:10px!important;width:max-content;max-width:calc(100% - 260px);justify-content:center;padding:6px 8px!important;background:var(--card)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:.5px solid var(--bd)!important;border-radius:16px!important;box-shadow:var(--sh)!important}
+#mapwrap #ctxrow:not(.dock) button,#mapwrap #ctxrow:not(.dock) select,#mapwrap #ctxrow:not(.dock) input{background:var(--fill);box-shadow:none;border:0}
+#mapwrap #ctxrow:not(.dock) button:hover{background:var(--hov)}
+#mapwrap #ctxrow:not(.dock)::before{display:none}
 @media print{#apple{display:none}}
 </style>
 <script>
