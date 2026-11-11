@@ -518,7 +518,7 @@ ko.forEach(function(k){var P=CAMS[k];cl.push('<div class="cl"><i class="sw" styl
 function mt(x){return Math.round(x/FTM)}
 var isP=mode==="plan",fen=fences.filter(function(f){return f.k!=="wall"}),wal=fences.filter(function(f){return f.k==="wall"}),wl=wal.reduce(function(s,f){return s+fenceLen(f)},0);fl=fen.reduce(function(s,f){return s+fenceLen(f)},0);
 document.getElementById("info").innerHTML='<div class="chips">'+
-(isP?'':'<div class="camlist"><div class="cl"><u class="sd" style="background:#534AB7"></u><b>'+poles.filter(function(p){return!p.w}).length+'</b> poles</div>'+(pe?'<div class="cl"><b>'+pe+'</b> &times; Pole with power (green)</div>':'')+(poles.length-pe?'<div class="cl"><b>'+(poles.length-pe)+'</b> &times; Plain pole (purple)</div>':'')+'</div>')+
+(isP?'':'<div class="camlist"><div class="cl"><u class="sd" style="background:#534AB7"></u><b>'+poles.filter(function(p){return!p.w}).length+'</b> poles</div>'+(pe?'<div class="cl"><b>'+pe+'</b> &times; Pole with power (green)</div>':'')+(poles.filter(function(p){return!p.w}).length-pe?'<div class="cl"><b>'+(poles.filter(function(p){return!p.w}).length-pe)+'</b> &times; Plain pole (purple)</div>':'')+'</div>')+
 ((!isP&&!office&&!cabs.length)?'<span class="warn">Office not placed yet</span>':'')+
 (isP&&plan&&!plan.cal?'<span class="warn">Scale not set yet (use Set scale)</span>':'')+
 (tc?'<div class="camlist"><div class="cl"><u class="sd" style="background:#1a73e8"></u><b>'+tc+'</b> cameras</div>'+cl.join('')+'</div>':'<span><u class="sd" style="background:#1a73e8"></u><b>0</b> cameras</span>')+
@@ -1500,6 +1500,38 @@ var _rf5=refresh;refresh=function(){var r=_rf5.apply(this,arguments);try{upd()}c
 document.getElementById("oa").onchange=function(){if(!office)return;apply(+this.value||0);save();if(HM)HM.setLatLng(hpos());map.fire("moveend")};
 document.getElementById("olp").onchange=function(){if(!office)return;office.lp=this.value;save();refresh()};document.getElementById("oc").onchange=function(){if(!office)return;office.col=this.value;save();refresh()};
 document.getElementById("oa0").onclick=function(){if(!office)return;apply(0);save();document.getElementById("oa").value=0;if(HM)HM.setLatLng(hpos());map.fire("moveend")};
+})();
+</script>
+<script>
+/* ---- full summary: cameras by model, radios, links, cable with spare ---- */
+(function(){
+function sp(){var v=PR&&PR.spare;return v==null||v===""?25:+v}
+function fm(n){return Math.round(n).toLocaleString("en-US")}
+function mt(n){return Math.round(n/FTM)}
+function camLine(){var g={};cams.forEach(function(c){var k=camKey(c);g[k]=(g[k]||0)+(c.n||1)});return Object.keys(g).map(function(k){return g[k]+" x "+(CAMS[k]?CAMS[k].nm:k)}).join(", ")}
+function cableRow(col,name,runs,len){if(!runs)return"";var s=sp(),tot=len+runs*s;return'<span><i class="sw" style="background:'+col+'"></i>'+name+': <b>'+runs+'</b> run'+(runs>1?"s":"")+', <b>'+fm(len)+'</b> ft + '+s+' ft spare each = <b>'+fm(tot)+'</b> ft ('+mt(tot)+' m)</span>'}
+function extra(){
+ var h="",s=sp();
+ var c6=0,c6n=0,fb=0,fbn=0,v=0,vn=0,va=0,van=0;
+ (RUNS||[]).forEach(function(r){c6n+=r.n;c6+=r.len*r.n});
+ poles.forEach(function(p){if(p.w||isPw(p)||hasCable(p.id))return;var n=nearest(p);if(n){c6n++;c6+=n.d}});
+ cables.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b);if(k.t==="v"){if(k.air){van++;va+=d}else{vn++;v+=d}}else if(k.t==="f"){fbn++;fb+=d}else{c6n++;c6+=d}});
+ (SL||[]).forEach(function(k){fbn++;fb+=k.len});fibs.forEach(function(f){fbn++;fb+=fibLen(f)});
+ var cab=cableRow("#378ADD","Cat6",c6n,c6)+cableRow("#FFB400","Fiber",fbn,fb)+cableRow("#d6336c","120 V power",vn,v)+cableRow("#2f9e44","120 V on air",van,va);
+ var sec='<div class="camlist" style="margin-top:6px"><div class="cl"><b>Wireless and network gear</b></div>';
+ var nsec=nets.filter(function(n){return n.k==="ns"}).length,ncl=nets.filter(function(n){return n.k==="nc"}).length,nsw=nets.filter(function(n){return n.k==="nw"}).length,any=false;
+ if(nsec){sec+='<div class="cl"><b>'+nsec+'</b> &times; Ubiquiti sector antenna</div>';any=true}
+ if(ncl){sec+='<div class="cl"><b>'+ncl+'</b> &times; Client AP (LiteBeam 5AC Gen2)</div>';any=true}
+ if(nsw){sec+='<div class="cl"><b>'+nsw+'</b> &times; Gigabit switch</div>';any=true}
+ if(xfs.length){sec+='<div class="cl"><b>'+xfs.length+'</b> &times; Transformer 480 V to 120 V</div>';any=true}
+ wls.forEach(function(k,i){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b);sec+='<div class="cl">Wireless bridge '+(i+1)+': '+(a.k==="ns"?"Sector antenna":"Client AP")+' to '+(b.k==="ns"?"Sector antenna":"Client AP")+', '+(k.sp||"2.5G")+' link, <b>'+fm(d)+'</b> ft ('+mt(d)+' m)</div>';any=true});
+ sec+='</div>';
+ if(any)h+=sec;
+ if(cab)h+='<div class="camlist" style="margin-top:6px"><div class="cl"><b>Cable with spare</b> <span style="font-weight:400">(spare per run <input id="spareIn" type="number" min="0" step="5" value="'+s+'" style="width:58px;padding:1px 4px;background:#fff;color:#111"> ft)</span></div>'+cab+'</div>';
+ return h}
+var _dl9=drawLines;drawLines=function(){_dl9.apply(this,arguments);try{var el=document.getElementById("info");if(el&&!el.querySelector("#spareIn")&&!el.querySelector(".wsum"))el.insertAdjacentHTML("beforeend",'<div class="wsum">'+extra()+'</div>')}catch(e){}};
+document.addEventListener("change",function(e){if(e.target&&e.target.id==="spareIn"){PR.spare=Math.max(0,+e.target.value||0);save();refresh()}});
+var _us=updSum;updSum=function(){_us.apply(this,arguments);try{var t=document.getElementById("sumtxt"),h=t.innerHTML,ln=camLine();if(ln)h=h.replace(/(<b>\d+<\/b> cameras?)/,"$1 ("+ln+")");var r=[],a=nets.filter(function(n){return n.k==="ns"}).length,b=nets.filter(function(n){return n.k==="nc"}).length,w=nets.filter(function(n){return n.k==="nw"}).length;if(a)r.push("<b>"+a+"</b> sector");if(b)r.push("<b>"+b+"</b> Client AP");if(w)r.push("<b>"+w+"</b> switch"+(w>1?"es":""));if(wls.length)r.push("<b>"+wls.length+"</b> wireless link"+(wls.length>1?"s":""));if(r.length)h+=" &nbsp;&middot;&nbsp; "+r.join(" &middot; ");t.innerHTML=h}catch(e){}};
 })();
 </script>
 <style id="apple">
