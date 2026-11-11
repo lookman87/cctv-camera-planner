@@ -225,7 +225,7 @@ body.printing #toolrow,body.printing #ctxrow{display:none!important}
 .ctag{position:absolute;left:0;top:0;font:600 10px/1 system-ui,sans-serif;background:var(--card,#fff);color:var(--fg,#111);border:2px solid #1a73e8;border-radius:9px;padding:2px 5px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);pointer-events:none}
 #laymenu{position:fixed;z-index:4000;background:var(--card,#fff);color:var(--fg,#111);border:1px solid var(--bd,#ccc);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:13px}
 #laymenu[hidden]{display:none}
-#doriBtn.on{background:#2b8a3e!important;color:#fff!important}
+#tdori.on,#mapwrap #toolrow #tdori.on{background:#2b8a3e!important;color:#fff!important}
 #notebox,#pnl{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 #notebox[hidden],#pnl[hidden]{display:none}
 #notebox .box{background:var(--card,#fff);color:var(--fg,#111);border-radius:12px;padding:14px;width:min(460px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
@@ -256,6 +256,7 @@ body.rptprint #rpt{display:block;font:12px/1.35 system-ui,sans-serif;color:#000;
 <br><u style="background:#534AB7"></u>Pole <u style="background:#0F6E56"></u>Pole with power <u style="background:#e03131;border-radius:2px"></u>Office <u style="background:#1a73e8;opacity:.6"></u>2.8 mm <u style="background:#2f9e44;opacity:.6"></u>4 mm <u style="background:#f76707;opacity:.6"></u>12 mm <u style="background:#7048e8;opacity:.6"></u>4-camera <u style="background:#0bb5c9;opacity:.6"></u>PTZ <u style="background:#c2255c;opacity:.6"></u>LPR (camera view colors) <i style="background:#378ADD"></i>Cat6 (blue) <i style="background:#FFB400"></i>Fiber (yellow) <i style="background:#d6336c"></i>120 V power <i style="background:#111"></i>Fence <i style="background:linear-gradient(90deg,#fff 30%,#111 30% 70%,#fff 70%);border:1px solid #111"></i>Barrier gate</div>
 <div id="mapwrap"><div class="bar" id="toolrow">
 <button id="th" hidden><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>Hand (move map)</button>
+<button id="tdori" title="DORI on/off: show how sharp the picture is at each distance for all cameras (Detect, Observe, Recognize, Identify)"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>DORI off</button>
 <button id="tm" class="on"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>Move</button>
 <span class="sep"></span>
 <button id="tp"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7" fill="#534AB7" stroke="#534AB7"/><circle cx="12" cy="12" r="2.5" fill="#fff" stroke="none"/></svg>Pole</button>
@@ -1095,7 +1096,7 @@ function portOf(c){var m=netModel(),res=null;m.groups.forEach(function(g){g.devs
 var DORI=[{k:"Identify",ppm:250,col:"#2b8a3e"},{k:"Recognize",ppm:125,col:"#74b816"},{k:"Observe",ppm:62.5,col:"#f59f00"},{k:"Detect",ppm:25,col:"#adb5bd"}];
 function doriDist(c){var P=CAMS[camKey(c)],fv=(c.fov>=360?(P.dfov||60):c.fov),f=Math.min(fv*Math.PI/360,1.5);return DORI.map(function(d){return{k:d.k,col:d.col,ppm:d.ppm,m:P.hres/(d.ppm*2*Math.tan(f))}})}
 var doriOn=false;
-function doriCams(){var out=[];if(sel&&sel.t==="a"){var c=camById(sel.id);if(c)out.push(c)}if(typeof msel!=="undefined"&&msel)msel.forEach(function(i){var c=camById(i);if(c&&out.indexOf(c)<0)out.push(c)});return out}
+function doriCams(){var out=[];if(doriOn)return cams.slice();if(sel&&sel.t==="a"){var c=camById(sel.id);if(c)out.push(c)}if(typeof msel!=="undefined"&&msel)msel.forEach(function(i){var c=camById(i);if(c&&out.indexOf(c)<0)out.push(c)});return out}
 function doriDraw(){if(!doriOn)return;doriCams().forEach(function(c){var ds=doriDist(c),hs=c.n===4?[0,90,180,270]:[0],prev=0;
  var arr=ds.slice().reverse(); /* Detect first (largest) */
  arr.forEach(function(d,i){var inner=i<arr.length-1?arr[i+1].m:0; if(inner>=c.r)return; var dist=Math.min(d.m,c.r),f=Object.assign({},c,{r:dist});hs.forEach(function(k){sector1(f,c.h+k,{dori:true,col:d.col,fo:.3})})})})}
@@ -1111,14 +1112,14 @@ var _dm=drawMarkers;drawMarkers=function(){_dm.apply(this,arguments);drawTags()}
 var _st=status;status=function(){_st.apply(this,arguments);var el=$("selt");
  var c=sel&&sel.t==="a"?camById(sel.id):null;
  if(el&&c){var ds=doriDist(c).map(function(d){return d.k+" "+Math.round(Math.min(d.m,9999)*FTM)+" ft"}).join(", "),pt=portOf(c);el.textContent+=" | "+camNum(c)+(pt?", "+pt:"")+" | DORI: "+ds+"."}
- var has=doriCams().length>0;$("doriBtn").hidden=!has;$("doriBtn").classList.toggle("on",doriOn);$("doriBtn").textContent=doriOn?"DORI: on":"DORI";
+ var tb=$("tdori");if(tb){tb.classList.toggle("on",doriOn);tb.lastChild.nodeValue=doriOn?"DORI on":"DORI off"}
  var k=selKey();$("notesBtn").hidden=!k;if(k){var nt=NT[k];$("notesBtn").textContent=nt&&(nt.t||(nt.ph&&nt.ph.length)||nt.h)?"Notes *":"Notes"}};
 
 /* ---------- toolbar additions ---------- */
 var cr=$("ctxrow"),hb=document.createElement("span");hb.style.display="contents";
-hb.innerHTML='<button id="doriBtn" hidden title="Show how sharp the picture is at each distance (Detect, Observe, Recognize, Identify)">DORI</button><button id="notesBtn" hidden title="Notes, mounting height and photos for the selected object">Notes</button>';
+hb.innerHTML='<button id="notesBtn" hidden title="Notes, mounting height and photos for the selected object">Notes</button>';
 cr.insertBefore(hb,cr.firstChild);
-$("doriBtn").onclick=function(){doriOn=!doriOn;refresh()};
+$("tdori").onclick=function(){doriOn=!doriOn;refresh()};
 var fg=$("fgrp");
 var lb=document.createElement("button");lb.id="layBtn";lb.textContent="Layers";lb.title="Show or hide parts of the drawing";fg.insertBefore(lb,$("fit"));
 var rb=document.createElement("button");rb.id="rptBtn";rb.textContent="Report";rb.title="Estimate, network, storage, power and client report";fg.insertBefore(rb,$("fit"));var hb=document.createElement("button");hb.id="hintBtn";hb.title="Show or hide the help text on the map";function hset(v){document.body.classList.toggle("nohint",!v);hb.textContent=v?"Hints: on":"Hints: off";try{localStorage.setItem("pp-hint",v?"1":"0")}catch(e){}}hb.onclick=function(){hset(document.body.classList.contains("nohint"))};fg.insertBefore(hb,$("fit"));var hv=true;try{hv=localStorage.getItem("pp-hint")!=="0"}catch(e){}hset(hv);
