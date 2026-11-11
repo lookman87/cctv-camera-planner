@@ -18,6 +18,11 @@ Keywords: CCTV design tool, security camera layout, camera field of view calcula
 - **Power.** 120 V circuit summary.
 - **Estimate / BOM.** Quantities from the drawing, editable unit prices and labor, CSV export.
 - **Client report.** Print or save a PDF with your logo, cover info, map snapshot, camera schedule and estimate.
+- **Camera library.** Axis and Hikvision models with specs taken from the manufacturer datasheets (source link shown for each). Add them to your camera list in one click.
+- **Mount height and tilt.** Enter height and tilt for a camera to see the real ground coverage and the blind zone at the pole base.
+- **Lens helper.** Distance plus Identify / Recognize / Observe / Detect gives the widest view that still works and the models that can do it.
+- **Switch and recorder per IDF.** Pick a switch and an NVR, get warnings for ports, PoE budget, channels, bandwidth and disk size.
+- **Voltage drop** for 120 V runs, **fixes for Cat6 runs over 300 ft** (fiber with media converters or PoE extender, added to the estimate) and an automatic **network diagram**.
 - **Layers, notes, photos** attached to objects, **custom cameras** with your own model and specs.
 - **Multiple maps and plans** per project, undo/redo, copy/paste, select area, present mode, dark mode.
 - Data is saved locally in your browser (or in the desktop app).

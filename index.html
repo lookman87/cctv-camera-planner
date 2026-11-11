@@ -372,8 +372,8 @@ g:{nm:"PTZ 4MP",fov:360,r:90,col:"#0bb5c9",mdl:"LXPTZIP4CX84WI-X25SDL, 4 MP PTZ 
 d:{nm:"LPR 4.7-118",fov:30,r:100,col:"#c2255c",mdl:"LTCMIP3B43LPR-AISP, 4 MP motorized varifocal bullet LPR, 4.7-118 mm",mp:4,hres:2688,w:20,mbps:4,inf:"LTCMIP3B43LPR-AISP, 4 MP motorized varifocal bullet LPR, 4.7-118 mm lens, Matrix IR up to 656 ft."}};
 function camKey(c){if(c.t&&CAMS[c.t])return c.t;if(c.n===4)return"q";return c.fov===360?"g":c.fov<=40?"l":c.fov<=85?"k":"a"}
 function camCol(c){return CAMS[camKey(c)].col}
-function addCustomCam(o){if(!o||!o.k)return;CAMS[o.k]={nm:o.nm||"Custom",fov:+o.fov||90,r:+o.r||40,col:o.col||"#868e96",mp:+o.mp||4,hres:+o.hres||2688,w:+o.w||12,mbps:+o.mbps||4,inf:o.inf||"Custom camera",cust:1};if(+o.dfov)CAMS[o.k].dfov=+o.dfov;var sl=document.getElementById("ctype");if(sl&&!sl.querySelector('option[value="'+o.k+'"]')){var op=document.createElement("option");op.value=o.k;op.textContent=o.nm;sl.appendChild(op)}}
-function customList(){var out=[];for(var k in CAMS)if(CAMS[k].cust){var P=CAMS[k];out.push({k:k,nm:P.nm,fov:P.fov,r:P.r,col:P.col,mp:P.mp,hres:P.hres,w:P.w,mbps:P.mbps,dfov:P.dfov,inf:P.inf})}return out}
+function addCustomCam(o){if(!o||!o.k)return;CAMS[o.k]={nm:o.nm||"Custom",fov:+o.fov||90,r:+o.r||40,col:o.col||"#868e96",mp:+o.mp||4,hres:+o.hres||2688,w:+o.w||12,mbps:+o.mbps||4,inf:o.inf||"Custom camera",cust:1};if(o.mdl)CAMS[o.k].mdl=o.mdl;if(+o.dfov)CAMS[o.k].dfov=+o.dfov;var sl=document.getElementById("ctype");if(sl&&!sl.querySelector('option[value="'+o.k+'"]')){var op=document.createElement("option");op.value=o.k;op.textContent=o.nm;sl.appendChild(op)}}
+function customList(){var out=[];for(var k in CAMS)if(CAMS[k].cust){var P=CAMS[k];out.push({k:k,nm:P.nm,fov:P.fov,r:P.r,col:P.col,mp:P.mp,hres:P.hres,w:P.w,mbps:P.mbps,dfov:P.dfov,inf:P.inf,mdl:P.mdl})}return out}
 (CATS.cc||[]).forEach(function(o){addCustomCam(o)});(pendingCC||[]).forEach(addCustomCam);
 function newCam(key,pole,lat,lng){var P=CAMS[key],c={id:mid++,pole:pole,lat:lat,lng:lng,h:0,fov:P.fov,r:dr(P.r),t:key};if(P.n)c.n=P.n;return c}
 function camPos(c){var n=c.pole?node(c.pole):c;return n?{lat:n.lat,lng:n.lng}:null}
@@ -469,9 +469,11 @@ fences.forEach(function(f){if(f.k!=="wall")return;for(var i=1;i<f.pts.length;i++
 if(Math.min(ax,bx)>r||Math.max(ax,bx)<-r||Math.min(ay,by)>r||Math.max(ay,by)<-r)continue;out.push([ax,ay,bx,by])}});return out}
 function rayHit(sg,dx,dy,r){var best=r;for(var i=0;i<sg.length;i++){var s=sg[i],ex=s[2]-s[0],ey=s[3]-s[1],den=dx*ey-dy*ex;if(Math.abs(den)<1e-9)continue;
 var t=(s[0]*ey-s[1]*ex)/den,u=(s[0]*dy-s[1]*dx)/den;if(t>0.3&&t<best&&u>=0&&u<=1)best=t}return best}
-function sector1(c,hh,O){O=O||{};if(!O.dori&&!LAY.zone)return;var p=camPos(c);if(!p)return;var pts=[],a0=hh-c.fov/2,sg=wallSegsFor(p,c.r),steps=sg.length?Math.max(8,Math.min(120,Math.round(c.fov/2))):Math.max(4,Math.round(c.fov/5)),i;
-if(c.fov<360)pts.push(ll(p));
-for(i=0;i<=steps;i++){var ang=a0+c.fov*i/steps,d=c.r;if(sg.length){var rr=ang*Math.PI/180;d=rayHit(sg,Math.sin(rr),Math.cos(rr),c.r)}pts.push(off(p,d,ang))}
+function groundBand(c){if(!(c.mh>0&&c.tl>0)||c.fov>=360)return null;var h=c.mh*0.3048,t=c.tl*Math.PI/180,v=2*Math.atan(Math.tan(c.fov*Math.PI/360)*9/16),lo=t-v/2,hi=t+v/2;var far=lo>0.01?h/Math.tan(lo):1e9,near=hi<1.5?h/Math.tan(hi):0;return{near:near,far:far,h:h}}
+function sector1(c,hh,O){O=O||{};if(!O.dori&&!LAY.zone)return;var p=camPos(c);if(!p)return;var gb=groundBand(c),rO=c.r;if(gb){rO=Math.min(c.r,gb.far);if(gb.near>=rO)return}var pts=[],a0=hh-c.fov/2,sg=wallSegsFor(p,rO),steps=sg.length?Math.max(8,Math.min(120,Math.round(c.fov/2))):Math.max(4,Math.round(c.fov/5)),i;
+if(c.fov<360&&!(gb&&gb.near>0.5))pts.push(ll(p));
+for(i=0;i<=steps;i++){var ang=a0+c.fov*i/steps,d=rO;if(sg.length){var rr=ang*Math.PI/180;d=rayHit(sg,Math.sin(rr),Math.cos(rr),rO)}pts.push(off(p,d,ang))}
+if(gb&&gb.near>0.5&&c.fov<360)for(i=steps;i>=0;i--)pts.push(off(p,gb.near,a0+c.fov*i/steps));
 if(O.dori){L.polygon(pts,{color:O.col,weight:1,opacity:.9,fillColor:O.col,fillOpacity:O.fo||.28,interactive:false}).addTo(lines);return}
 var isSel=(sel&&sel.t==="a"&&sel.id===c.id)||isMs(c.id);
 var cc=camCol(c),pg1=L.polygon(pts,{color:isSel?"#fff":cc,weight:isSel?2.5:1.6,opacity:isSel?.95:.85,fillColor:cc,fillOpacity:.2,interactive:tool==="m"&&!pasting}).addTo(lines);
@@ -1139,7 +1141,7 @@ function tblEst(edit){var E=est(),h='<table class="pt"><tr><th>Item</th><th clas
  if(E.mk)h+='<tr><td colspan="4">Markup '+E.mk+'%</td><td class="r">'+money(E.mka)+'</td></tr>';if(E.tx)h+='<tr><td colspan="4">Tax '+E.tx+'%</td><td class="r">'+money(E.tax)+'</td></tr>';
  h+='<tr class="s"><td colspan="4">Total</td><td class="r">'+money(E.total)+'</td></tr></table>';return h}
 function tblNet(){var m=netModel(),h="";if(!cabs.length)h+='<p class="pn">No IDF on the plan yet. Place an IDF and every camera and AP gets a port.</p>';
- m.groups.forEach(function(g){h+='<h4>'+esc(g.cab.name)+' <small>'+g.ports+' ports used, '+num(g.w)+' W PoE, '+num(g.mbps,1)+' Mbps from cameras</small></h4>';
+ m.groups.forEach(function(g){h+='<h4>'+esc(g.cab.name)+' <small>'+g.ports+' port'+(g.ports===1?'':'s')+' used, '+num(g.w)+' W PoE, '+num(g.mbps,1)+' Mbps from cameras</small></h4>';
   h+='<table class="pt"><tr><th>Device</th><th>Type</th><th>Port</th><th class="r">Run, ft</th><th class="r">Watts</th><th>PoE</th><th></th></tr>';
   g.devs.forEach(function(d){var bad=d.len>MAXFT;h+='<tr><td>'+d.lab+(d.pole?" (pole)":"")+'</td><td>'+esc(d.type)+(d.n>1?" x"+d.n:"")+'</td><td>'+d.portTxt+'</td><td class="r'+(bad?" warn":"")+'">'+Math.round(d.len)+'</td><td class="r">'+num(d.w)+'</td><td>'+poeClass(d.per)+'</td><td>'+(bad?'<span class="warn">over '+MAXFT+' ft</span>':"")+'</td></tr>'});
   h+='</table><p class="pn"><b>Suggested:</b> '+switchFor(g)+'.</p>'});
@@ -1208,6 +1210,9 @@ window.addEventListener("afterprint",function(){document.body.classList.remove("
 window.rptHead=function(){var lg="";try{lg=localStorage.getItem("pp-logo")||""}catch(e){}var t=[prj("project",""),prj("client","")?"Client: "+prj("client",""):"",prj("by","")].filter(Boolean).join(" | ");
  if(!lg&&!t)return;var el=$("pdate");el.innerHTML=(lg?'<img src="'+lg+'" style="height:34px;vertical-align:middle;margin-right:10px">':"")+(t?'<b>'+esc(t)+'</b><br>':"")+esc(el.textContent)};
 document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(!pn.hidden){pn.hidden=true;e.stopPropagation()}else if(!nb.hidden){nbSave();nb.hidden=true;refresh()}lm.hidden=true},true);
+window.__hk={pn:pn,render:render,openP:openP,price:price,prj:prj,esc:esc,num:num,netModel:netModel,storage:storage,catSave:catSave,
+ get:function(n){return{est:est,tblNet:tblNet,tblPwr:tblPwr,buildReport:buildReport}[n]},
+ set:function(n,f){if(n==="est")est=f;else if(n==="tblNet")tblNet=f;else if(n==="tblPwr")tblPwr=f;else if(n==="buildReport")buildReport=f}};
 refresh();
 })();
 </script>
@@ -1291,6 +1296,146 @@ function rmin(v){document.body.classList.toggle("railmin",v);rt.innerHTML=v?"&ra
 var rv=null;try{rv=localStorage.getItem("pp-railmin")}catch(e){}rmin(rv===null?innerWidth<900:rv==="1");
 rt.onclick=function(){rmin(!document.body.classList.contains("railmin"))};
 placeCtx();
+})();
+</script>
+<script>
+/* ---- tech: camera library, mount height/tilt, equipment, lens helper, voltage drop, long-run fixes, diagram ---- */
+(function(){
+var $=function(i){return document.getElementById(i)},H=window.__hk,pn=H.pn,render=H.render,price=H.price,prj=H.prj,esc=H.esc,num=H.num,netModel=H.netModel,storage=H.storage,catSave=H.catSave;
+var SRC={p3265:"https://axis.com/dam/public/cf/9b/a3/datasheet-axis-p3265-lve-dome-camera-en-US-470410.pdf",p1465:"https://www.axis.com/dam/public/15/b9/e9/datasheet-axis-p1465-le-bullet-camera-en-US-506640.pdf",q6135:"https://axis.com/dam/public/3e/9d/e7/datasheet-axis-q6135-le-ptz-network-camera-en-US-470368.pdf",h87:"https://my-sicherheit.de/download/datasheets/233268_de_sup.pdf",h87l:"https://www.ipsecuritydepot.com/hikvision-ds-2cd2387g2-lu-8mp-colorvu-ai-ir-wdr-outdoor-turret-ip-camera/ds-2cd2387g2-lu/"};
+/* fW wide HFOV deg, fT tele HFOV deg, ir/light range m, w = max PoE draw W (datasheet) */
+var LIB=[
+{id:"axp3265_9",br:"Axis",md:"P3265-LVE 9 mm",lens:"3.4-8.9 mm varifocal",fW:100,fT:36,hres:1920,mp:2,w:10.7,ir:40,src:SRC.p3265,note:"1080p dome, IR 40 m"},
+{id:"axp3265_22",br:"Axis",md:"P3265-LVE 22 mm",lens:"9-22 mm varifocal",fW:35,fT:15,hres:1920,mp:2,w:10.7,ir:45,src:SRC.p3265,note:"1080p dome, IR 45 m"},
+{id:"axp1465_9",br:"Axis",md:"P1465-LE 9 mm",lens:"3-9 mm varifocal",fW:117,fT:37,hres:1920,mp:2,w:12.95,ir:40,src:SRC.p1465,note:"1080p bullet, IR 40 m"},
+{id:"axp1465_29",br:"Axis",md:"P1465-LE 29 mm",lens:"10.9-29 mm varifocal",fW:29,fT:11,hres:1920,mp:2,w:12.95,ir:80,src:SRC.p1465,note:"1080p bullet, IR 80 m"},
+{id:"axq6135",br:"Axis",md:"Q6135-LE PTZ",lens:"32x zoom PTZ",fW:58.3,fT:2.4,hres:1920,mp:2,w:25,ir:190,ptz:1,src:SRC.q6135,note:"1080p PTZ, IR 190 m (250 m with 60 W midspan). Max 25 W on PoE+, 51 W on High PoE"},
+{id:"hk87_28",br:"Hikvision",md:"DS-2CD2T87G2-L 2.8 mm",lens:"2.8 mm fixed",fW:102,fT:102,hres:3840,mp:8,w:9.5,ir:60,src:SRC.h87,note:"8 MP bullet, white light 60 m"},
+{id:"hk87_4",br:"Hikvision",md:"DS-2CD2T87G2-L 4 mm",lens:"4 mm fixed",fW:88,fT:88,hres:3840,mp:8,w:9.5,ir:60,src:SRC.h87,note:"8 MP bullet, white light 60 m"},
+{id:"hk87_6",br:"Hikvision",md:"DS-2CD2T87G2-L 6 mm",lens:"6 mm fixed",fW:54,fT:54,hres:3840,mp:8,w:9.5,ir:60,src:SRC.h87,note:"8 MP bullet, white light 60 m"},
+{id:"hk87l_28",br:"Hikvision",md:"DS-2CD2387G2-LU 2.8 mm",lens:"2.8 mm fixed",fW:102,fT:102,hres:3840,mp:8,w:6.5,ir:30,src:SRC.h87l,note:"8 MP turret, light 30 m (retailer listing, check the datasheet)"},
+{id:"hk87l_4",br:"Hikvision",md:"DS-2CD2387G2-LU 4 mm",lens:"4 mm fixed",fW:88,fT:88,hres:3840,mp:8,w:6.5,ir:30,src:SRC.h87l,note:"8 MP turret, light 30 m (retailer listing, check the datasheet)"}];
+var FTM=3.28084,SW=[
+{k:"usw48",nm:"Ubiquiti USW-Pro-48-PoE",ports:48,poe:600,src:"https://netf.pl/wp-content/uploads/2025/04/usw-pro-48-poe_ds.pdf",note:"48 x GbE (40 PoE/PoE+, 8 PoE++), 4 x SFP+, total PoE 600 W"},
+{k:"uswm24",nm:"Ubiquiti USW-Pro-Max-24-PoE",ports:24,poe:400,src:"https://netxl.com/ubiquiti/docs/usw-pro-max-24-poe-datasheet.pdf",note:"24 PoE ports (8 PoE/PoE+, 16 PoE++), 2 x SFP+, total PoE 400 W"}];
+var NVR=[{k:"hik16",nm:"Hikvision DS-7616NXI-K2/16P/VPro",ch:16,inMbps:160,poePorts:16,poeW:200,hdds:2,hddTB:16,src:"https://assets.hikvision.com/prd/normal/all/doc/m000148404/DS-7616NXI-K2_16P_VPro_Datasheet_20260205.pdf",note:"16 channels, 160 Mbps incoming, 16 PoE ports (200 W total), 2 SATA x 16 TB max"}];
+function swOf(c){if(c.sw==="custom")return{nm:"Custom switch",ports:+c.cps||0,poe:+c.cpw||0};for(var i=0;i<SW.length;i++)if(SW[i].k===c.sw)return SW[i];return null}
+function nvrOf(c){for(var i=0;i<NVR.length;i++)if(NVR[i].k===c.nvr)return NVR[i];return null}
+function host(u){return u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]}
+function dist(fov,hres,ppm){return hres/(ppm*2*Math.tan(fov*Math.PI/360))}
+function keyOf(m,end){return"lib_"+m.id+(m.fW!==m.fT?"_"+end:"")}
+function addLib(m,end){var fov=end==="t"?m.fT:m.fW,k=keyOf(m,end),obs=dist(fov,m.hres,62.5),r=Math.max(10,Math.round(Math.min(obs,m.ir)));
+ var nm=m.br+" "+m.md+(m.fW!==m.fT?(end==="t"?", tele ":", wide ")+fov+"°":"");
+ var o={k:k,nm:nm,mp:m.mp,hres:m.hres,fov:m.ptz?360:fov,dfov:m.ptz?fov:0,r:m.ptz?Math.round(m.ir):r,w:m.w,mbps:m.mp>=8?6:m.mp>=4?4:3,col:m.br==="Axis"?"#e8590c":"#c92a2a",mdl:m.br+" "+m.md+" ("+m.lens+")",inf:m.br+" "+m.md+", "+m.lens+", HFOV "+fov+" deg, "+m.note+". Source: "+m.src};
+ if(CAMS[k])return;addCustomCam(o);CATS.cc.push(o);catSave();}
+function toast(t){var x=$("toast");if(x){x.textContent=t;x.className="show";setTimeout(function(){x.className=""},2200)}}
+/* ---- dialog shell ---- */
+var st=document.createElement("style");st.textContent="#techdlg{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:12px}#techdlg[hidden]{display:none}#techdlg .tb{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);max-width:880px;width:100%;max-height:88vh;overflow:auto;padding:14px 16px}#techdlg h3{margin:0 0 6px;font-size:17px}#techdlg table{border-collapse:collapse;width:100%;font-size:13px}#techdlg td,#techdlg th{padding:4px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}#techdlg small,.tn{color:var(--mut)}#techdlg .frm{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}#techdlg label{font-size:13px;display:flex;flex-direction:column;gap:2px}#techdlg a{color:var(--acc)}.okc{color:#2f9e44}.badc{color:#e03131;font-weight:600}#mtwrap{display:inline-flex;gap:4px;align-items:center;font-size:12px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:2px 6px;box-shadow:var(--sh)}#mtwrap input{width:62px!important;padding:2px 4px!important}#mtwrap small{color:var(--mut)}.dgm{overflow:auto;border:1px solid var(--bd);border-radius:8px;padding:6px;margin:8px 0}";document.head.appendChild(st);
+var dlg=document.createElement("div");dlg.id="techdlg";dlg.hidden=true;document.body.appendChild(dlg);
+dlg.addEventListener("click",function(e){if(e.target===dlg||e.target.getAttribute("data-x")!=null)dlg.hidden=true});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!dlg.hidden)dlg.hidden=true});
+function open(h){dlg.innerHTML='<div class="tb">'+h+'<div style="text-align:right;margin-top:10px"><button data-x>Close</button></div></div>';dlg.hidden=false}
+/* ---- 1. camera library ---- */
+function libHtml(){var h='<h3>Camera library</h3><p class="tn">Specs are copied from the manufacturer datasheets linked in each row (PoE is the maximum draw, range is the IR or light distance). Varifocal lenses add two entries, wide and tele. Added cameras appear in the camera type list and the Catalog tab, where you can edit them.</p><table><tr><th>Model</th><th>Lens</th><th>View</th><th>Res.</th><th>PoE W</th><th>Range m</th><th>Source</th><th></th></tr>';
+ LIB.forEach(function(m){var ends=m.fW!==m.fT?["w","t"]:["w"];ends.forEach(function(e,i){var k=keyOf(m,e),have=!!CAMS[k],fov=e==="t"?m.fT:m.fW;
+  h+='<tr><td>'+(i?"":'<b>'+m.br+' '+m.md+'</b><br><small>'+m.note+'</small>')+'</td><td>'+(i?"":m.lens)+'</td><td>'+(m.ptz?'PTZ '+fov+'&deg;':fov+'&deg;'+(ends.length>1?(e==="t"?" tele":" wide"):""))+'</td><td>'+m.mp+' MP</td><td>'+m.w+'</td><td>'+m.ir+'</td><td>'+(i?"":'<a href="'+m.src+'" target="_blank" rel="noopener">'+host(m.src)+'</a>')+'</td><td><button data-addlib="'+m.id+'|'+e+'"'+(have?" disabled":"")+'>'+(have?"Added":"Add")+'</button></td></tr>'})});
+ return h+'</table><p class="tn">Your LTS cameras are already in the list. Not on this list? Use "Add your own camera" in the Catalog tab.</p>'}
+dlg.addEventListener("click",function(e){var a=e.target.getAttribute&&e.target.getAttribute("data-addlib");if(!a)return;var p=a.split("|"),m=LIB.filter(function(x){return x.id===p[0]})[0];if(m){addLib(m,p[1]);if(dlg.getAttribute("data-m")==="lib")open(libHtml()),dlg.setAttribute("data-m","lib");else lensRender();toast("Added to the camera list")}});
+function openLib(){open(libHtml());dlg.setAttribute("data-m","lib")}
+/* ---- 4. lens helper ---- */
+var LH={d:100,l:2,mp:0};
+function lensRender(){var pp=[250,125,62.5,25],nm=["Identify (250 px/m)","Recognize (125 px/m)","Observe (62.5 px/m)","Detect (25 px/m)"];
+ var dm=LH.d/FTM,ppm=pp[LH.l],rows=[];
+ LIB.forEach(function(m){rows.push({id:m.id,m:m,nm:m.br+" "+m.md,hres:m.hres,fW:m.fW,fT:m.fT,ir:m.ir,lib:1})});
+ for(var k in CAMS){var P=CAMS[k];if(k==="q"||k==="g"||P.cust)continue;rows.push({nm:P.nm+(P.mdl?" ("+P.mdl.split(",")[0]+")":""),hres:P.hres,fW:P.fov,fT:P.fov,ir:P.r})}
+ rows.forEach(function(r){var hres=LH.mp?LH.mp:r.hres;r.need=2*Math.atan(hres/(ppm*dm*2))*180/Math.PI;r.ok=r.fT<=r.need+.01;r.set=Math.min(r.need,r.fW);r.cov=2*LH.d*Math.tan(r.set*Math.PI/360);r.irok=!r.ir||r.ir*FTM>=LH.d});
+ rows.sort(function(a,b){return(b.ok&&b.irok)-(a.ok&&a.irok)||b.set-a.set});
+ var sc=hresW();
+ var h='<h3>Lens helper</h3><p class="tn">Enter how far the subject is and what you need to see. The helper finds the widest view that still gives enough pixels per meter, and which models can do it. Range for built-in cameras is the drawn range, not a datasheet value.</p><div class="frm"><label>Distance, ft<input id="lh_d" type="number" min="5" value="'+LH.d+'" style="width:90px"></label><label>Need to<select id="lh_l">'+nm.map(function(x,i){return'<option value="'+i+'"'+(i===LH.l?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label><label>Sensor width<select id="lh_mp"><option value="0"'+(!LH.mp?" selected":"")+'>Each model\'s own</option><option value="1920"'+(LH.mp===1920?" selected":"")+'>1920 px (2 MP)</option><option value="2688"'+(LH.mp===2688?" selected":"")+'>2688 px (4 MP)</option><option value="3840"'+(LH.mp===3840?" selected":"")+'>3840 px (8 MP)</option></select></label></div>';
+ h+='<table><tr><th>Camera</th><th>Needs view no wider than</th><th>Set it to</th><th>Scene width at '+LH.d+' ft</th><th>Result</th><th></th></tr>';
+ rows.slice(0,14).forEach(function(r){var res=!r.ok?'<span class="badc">too wide, not enough detail</span>':!r.irok?'<span class="badc">reaches only '+Math.round(r.ir*FTM)+' ft</span>':'<span class="okc">works</span>';
+  h+='<tr><td>'+esc(r.nm)+(r.fW!==r.fT?'<br><small>'+r.fW+'&deg; to '+r.fT+'&deg;</small>':'<br><small>fixed '+r.fW+'&deg;</small>')+'</td><td>'+num(r.need,1)+'&deg;</td><td>'+(r.ok?num(r.set,0)+'&deg;':'-')+'</td><td>'+(r.ok?num(r.cov*FTM,0)+' ft':'-')+'</td><td>'+res+'</td><td>'+(r.lib&&r.ok?'<button data-addlib="'+r.id+'|'+(r.fW!==r.fT&&r.set<(r.fW+r.fT)/2?"t":"w")+'">Add</button>':"")+'</td></tr>'});
+ h+='</table>';open(h);dlg.setAttribute("data-m","lens")}
+function hresW(){return 0}
+dlg.addEventListener("change",function(e){var t=e.target;if(t.id==="lh_d"){LH.d=Math.max(5,+t.value||100);lensRender()}else if(t.id==="lh_l"){LH.l=+t.value;lensRender()}else if(t.id==="lh_mp"){LH.mp=+t.value;lensRender()}});
+/* ---- menu entries ---- */
+function mkb(id,t,f){var b=document.createElement("button");b.id=id;b.textContent=t;b.onclick=f;return b}
+var vm=$("viewmenu");if(vm){var pop=vm.querySelector(".pop"),sp=document.createElement("div");sp.className="sepx";pop.appendChild(sp);pop.appendChild(mkb("libBtn","Camera library",openLib));pop.appendChild(mkb("lensBtn","Lens helper",lensRender))}
+else{var fgp=$("fgrp");if(fgp){fgp.appendChild(mkb("libBtn","Camera library",openLib));fgp.appendChild(mkb("lensBtn","Lens helper",lensRender))}}
+/* ---- 2. mount height and tilt ---- */
+var mw=document.createElement("span");mw.id="mtwrap";mw.hidden=true;mw.innerHTML='Mount <input id="mt_h" type="number" min="0" step="1" placeholder="ft" title="Mounting height above ground, ft"> ft &nbsp;Tilt <input id="mt_t" type="number" min="0" max="90" step="1" placeholder="deg" title="Tilt below horizontal, degrees"> &deg; <small id="mt_i"></small>';
+var cg=$("ctxgrp");if(cg)cg.appendChild(mw);
+function selC(){return sel&&sel.t==="a"?camById(sel.id):null}
+function mtUpdate(){var c=selC();if(!c||c.fov>=360||c.n===4){mw.hidden=true;return}mw.hidden=false;var ah=document.activeElement;if(ah!==$("mt_h"))$("mt_h").value=c.mh||"";if(ah!==$("mt_t"))$("mt_t").value=c.tl||"";
+ var g=groundBand(c),i=$("mt_i");i.textContent=g?"blind "+Math.round(g.near*FTM)+" ft, sees to "+(g.far>=c.r?Math.round(c.r*FTM)+" ft (range)":Math.round(g.far*FTM)+" ft"):"(set both for ground coverage)"}
+function mtSet(){var c=selC();if(!c)return;var h=+$("mt_h").value,t=+$("mt_t").value;if(h>0)c.mh=h;else delete c.mh;if(t>0)c.tl=Math.min(89,t);else delete c.tl;save();refresh()}
+$("mt_h")&&($("mt_h").onchange=mtSet,$("mt_t").onchange=mtSet);
+var _rf=refresh;refresh=function(){var r=_rf.apply(this,arguments);try{mtUpdate()}catch(e){}return r};
+/* ---- 3. equipment per IDF ---- */
+function cabById(i){for(var k=0;k<cabs.length;k++)if(cabs[k].id===i)return cabs[k];return null}
+var REP=false;
+function equip(){var m=netModel(),h='<h4>Switch and recorder per IDF</h4>';if(!m.groups.length)return"";
+ var S=storage();
+ m.groups.forEach(function(g){var c=g.cab,sw=swOf(c),nv=nvrOf(c),camN=0,camMb=0;g.devs.forEach(function(d){if(d.kind==="cam"){camN+=d.n;camMb+=d.mbps}});
+  h+='<div style="margin:6px 0 10px"><b>'+esc(c.name)+'</b> <small class="tn">'+g.ports+' port'+(g.ports===1?'':'s')+', '+num(g.w)+' W, '+camN+' camera'+(camN===1?'':'s')+', '+num(camMb,1)+' Mbps</small>';
+  if(REP){h+='<br>Switch: '+(sw?esc(sw.nm):"not chosen")+'. Recorder: '+(nv?esc(nv.nm):"not chosen")+'.'}
+  else{h+='<div class="frm" style="margin:4px 0"><label>Switch<select data-tsw="'+c.id+'"><option value="">Not chosen</option>'+SW.map(function(s){return'<option value="'+s.k+'"'+(c.sw===s.k?" selected":"")+'>'+s.nm+'</option>'}).join("")+'<option value="custom"'+(c.sw==="custom"?" selected":"")+'>Custom</option></select></label>'+(c.sw==="custom"?'<label>Ports<input data-tcp="'+c.id+'" type="number" value="'+(c.cps||"")+'" style="width:70px"></label><label>PoE budget, W<input data-tcw="'+c.id+'" type="number" value="'+(c.cpw||"")+'" style="width:90px"></label>':"")+'<label>Recorder<select data-tnv="'+c.id+'"><option value="">Not chosen</option>'+NVR.map(function(s){return'<option value="'+s.k+'"'+(c.nvr===s.k?" selected":"")+'>'+s.nm+'</option>'}).join("")+'</select></label></div>'}
+  var msg=[];
+  if(sw&&sw.ports){var u=g.ports;msg.push(u>sw.ports?['bad',u+' ports needed, switch has '+sw.ports]:['ok',u+' of '+sw.ports+' ports used'])}
+  if(sw&&sw.poe){var pct=g.w/sw.poe*100;msg.push(pct>100?['bad','PoE load '+num(g.w)+' W is over the '+sw.poe+' W budget']:pct>80?['bad','PoE load '+num(g.w)+' W is '+Math.round(pct)+'% of the '+sw.poe+' W budget, little spare']:['ok','PoE load '+num(g.w)+' W of '+sw.poe+' W ('+Math.round(pct)+'%)'])}
+  if(nv){msg.push(camN>nv.ch?['bad',camN+' cameras, recorder has '+nv.ch+' channels']:['ok',camN+' of '+nv.ch+' channels used']);msg.push(camMb>nv.inMbps?['bad',num(camMb,1)+' Mbps is over the '+nv.inMbps+' Mbps incoming limit']:['ok',num(camMb,1)+' of '+nv.inMbps+' Mbps incoming']);
+   var tb=camMb*10.8*(+prj("rec",1))*(+prj("days",30)||30)/1000*(1+(+prj("ov",20))/100),cap=nv.hdds*nv.hddTB;msg.push(tb>cap?['bad','storage need about '+num(tb,1)+' TB is over the '+cap+' TB the recorder takes']:['ok','storage need about '+num(tb,1)+' TB of '+cap+' TB possible']);
+   if(camN<=nv.poePorts&&g.w<=nv.poeW&&!sw)msg.push(['ok','this recorder could also power these cameras on its own PoE ports ('+nv.poePorts+' ports, '+nv.poeW+' W)'])}
+  if(msg.length)h+='<div>'+msg.map(function(x){return'<span class="'+(x[0]==="bad"?"badc":"okc")+'">'+(x[0]==="bad"?"&#9888; ":"&#10003; ")+x[1]+'</span>'}).join('<br>')+'</div>';
+  h+='</div>'});
+ var used={};cabs.forEach(function(c){var s=swOf(c),n=nvrOf(c);if(s&&s.src)used[s.src]=s.nm;if(n)used[n.src]=n.nm});var us=Object.keys(used);
+ if(us.length)h+='<p class="pn">Sources: '+us.map(function(u){return'<a href="'+u+'" target="_blank" rel="noopener">'+esc(used[u])+'</a>'}).join(", ")+'. Switch totals are the datasheet PoE budgets. Always confirm against the current manufacturer datasheet before ordering.</p>';
+ return h}
+pn.addEventListener("change",function(e){var t=e.target,a;if((a=t.getAttribute("data-tsw"))){var c=cabById(+a);if(c){c.sw=t.value||undefined;save();render()}}
+ else if((a=t.getAttribute("data-tnv"))){var c2=cabById(+a);if(c2){c2.nvr=t.value||undefined;save();render()}}
+ else if((a=t.getAttribute("data-tcp"))){var c3=cabById(+a);if(c3){c3.cps=+t.value||0;save();render()}}
+ else if((a=t.getAttribute("data-tcw"))){var c4=cabById(+a);if(c4){c4.cpw=+t.value||0;save();render()}}
+ else if(t.getAttribute("data-lf")!=null){PR.longfix=t.value;save();render()}
+ else if((a=t.getAttribute("data-vd"))){PR[a]=+t.value||0;save();render()}});
+/* ---- 6. runs over 300 ft ---- */
+function longRuns(){var out=[];netModel().groups.forEach(function(g){g.devs.forEach(function(d){if(d.len>MAXFT)out.push({lab:d.lab,len:d.len,idf:g.cab.name})})});return out}
+function longHtml(){var L=longRuns();if(!L.length)return"";var fx=PR.longfix||"fiber",tot=0;L.forEach(function(r){tot+=r.len});
+ var h='<h4 class="warn">Runs over '+MAXFT+' ft ('+L.length+')</h4><p class="pn">Cat6 PoE is limited to '+MAXFT+' ft. Affected: '+L.map(function(r){return r.lab+" ("+Math.round(r.len)+" ft, "+esc(r.idf)+")"}).join(", ")+'.</p>';
+ if(REP)h+='<p class="pn">Planned fix: '+(fx==="fiber"?"fiber to a PoE media converter at the device":"PoE extender")+'.</p>';
+ else h+='<div class="frm"><label>Fix for these runs<select data-lf="1"><option value="fiber"'+(fx==="fiber"?" selected":"")+'>Fiber + media converters</option><option value="ext"'+(fx==="ext"?" selected":"")+'>PoE extender</option></select></label></div>';
+ h+='<p class="pn">'+(fx==="fiber"?'Run fiber from the IDF to the device and use a fiber media converter at the IDF and a PoE media converter at the device end. The device end needs local 120 V power. Added to the estimate: fiber feet, '+L.length+' converter'+(L.length>1?'s':'')+' at each end.':'A PoE extender repeats the signal and power over another Cat6 hop. Check the rated reach of the extender model you pick and whether it needs its own power. Added to the estimate: '+L.length+' extender'+(L.length>1?"s":"")+'.')+' The original Cat6 for these runs stays in the estimate, remove it by hand if the run is fiber only.</p>';return h}
+var _est=H.get("est");H.set("est",function(){var E=_est.apply(this,arguments),L=longRuns();if(!L.length)return E;var fx=PR.longfix||"fiber",tot=0;L.forEach(function(r){tot+=r.len});
+ var add=fx==="fiber"?[{grp:"Long runs",item:"Fiber for runs over "+MAXFT+" ft",qty:Math.round(tot),unit:"ft",pk:"fib"},{grp:"Long runs",item:"Fiber media converter, IDF end",qty:L.length,unit:"ea",pk:"mcf"},{grp:"Long runs",item:"PoE media converter, device end",qty:L.length,unit:"ea",pk:"mcp"}]:[{grp:"Long runs",item:"PoE extender",qty:L.length,unit:"ea",pk:"pext"}];
+ add.forEach(function(l){l.p=price(l.pk);l.tot=l.p*l.qty;E.sub+=l.tot;E.lines.push(l)});E.mka=E.sub*E.mk/100;E.tax=(E.sub+E.mka)*E.tx/100;E.total=E.sub+E.mka+E.tax;return E});
+/* ---- 7. network diagram ---- */
+function diagram(){var m=netModel(),G=m.groups.filter(function(g){return g.devs.length||true});if(!G.length)return"";
+ var CW=210,PAD=12,W=Math.max(420,G.length*CW+PAD*2),maxRows=0;G.forEach(function(g){if(g.devs.length>maxRows)maxRows=g.devs.length});
+ var top=srvs.length?70:10,y0=top+(srvs.length?34:0),H=y0+110+maxRows*17+20,s="";
+ var srvName=srvs.length?srvs.map(function(x){return x.name}).join(", "):"";
+ if(srvs.length)s+='<rect x="'+(W/2-90)+'" y="10" width="180" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="'+W/2+'" y="35" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">'+esc(srvName.slice(0,26))+'</text>';
+ G.forEach(function(g,i){var cx=PAD+i*CW+CW/2,c=g.cab,sw=swOf(c),nv=nvrOf(c);
+  if(srvs.length)s+='<line x1="'+W/2+'" y1="50" x2="'+cx+'" y2="'+y0+'" stroke="#7048e8" stroke-width="2"/><text x="'+((W/2+cx)/2+4)+'" y="'+(((50+y0)/2)+4)+'" font-size="10" fill="#7048e8">fiber</text>';
+  s+='<rect x="'+(cx-90)+'" y="'+y0+'" width="180" height="'+(nv?74:58)+'" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="'+cx+'" y="'+(y0+17)+'" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">'+esc(c.name)+'</text><text x="'+cx+'" y="'+(y0+33)+'" text-anchor="middle" font-size="10.5" fill="currentColor">'+esc(sw?sw.nm.replace("Ubiquiti ",""):"switch: not chosen")+'</text><text x="'+cx+'" y="'+(y0+47)+'" text-anchor="middle" font-size="10.5" fill="currentColor">'+g.ports+' port'+(g.ports===1?'':'s')+', '+num(g.w)+' W PoE'+(sw&&sw.poe?" / "+sw.poe+" W":"")+'</text>'+(nv?'<text x="'+cx+'" y="'+(y0+63)+'" text-anchor="middle" font-size="10.5" fill="currentColor">NVR '+esc(nv.nm.replace("Hikvision ","").replace("/VPro",""))+'</text>':"");
+  var by=y0+(nv?74:58);
+  g.devs.forEach(function(d,j){var yy=by+22+j*17,bad=d.len>MAXFT;s+=(j===0?'<line x1="'+cx+'" y1="'+by+'" x2="'+cx+'" y2="'+(yy-5)+'" stroke="currentColor" stroke-opacity=".5"/>':"")+'<text x="'+(cx-90)+'" y="'+yy+'" font-size="10.5" fill="'+(bad?"#e03131":"currentColor")+'">'+esc("p"+d.portTxt+"  "+d.lab+"  "+d.type+(d.n>1?" x"+d.n:"")+"  "+Math.round(d.len)+" ft")+'</text>'});
+ });
+ return'<div class="dgm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" style="max-width:100%;height:auto;font-family:system-ui,sans-serif">'+s+'</svg></div>'}
+/* ---- 5. voltage drop ---- */
+var AWG={14:3.07,12:1.93,10:1.21,8:0.778,6:0.491,4:0.308};
+function vdHtml(){var g=+prj("vd_g",12),w=+prj("vd_w",1500),runs=[];cables.forEach(function(k){if(k.t==="v"){var a=node(k.a),b=node(k.b);if(a&&b)runs.push({len:ft(a,b),air:!!k.air})}});
+ var h='<h4>Voltage drop, 120 V runs</h4>';
+ if(REP)h+='<p class="pn">Wire '+g+' AWG copper, load '+num(w)+' W.</p>';else h+='<div class="frm"><label>Wire size<select data-vd="vd_g">'+Object.keys(AWG).map(function(k){return'<option value="'+k+'"'+(+k===g?" selected":"")+'>'+k+' AWG</option>'}).join("")+'</select></label><label>Load on the run, W<input data-vd="vd_w" type="number" min="1" value="'+w+'" style="width:90px"></label></div>';
+ function calc(L){var I=w/120,dv=I*2*L*AWG[g]/1000;return{I:I,dv:dv,pc:dv/120*100}}
+ if(!runs.length)h+='<p class="pn">Draw a 120 V cable to see its voltage drop.</p>';
+ else{h+='<table class="pt"><tr><th>120 V run</th><th class="r">Length, ft</th><th class="r">Current, A</th><th class="r">Drop, V</th><th class="r">Drop, %</th><th></th></tr>';
+  runs.forEach(function(r,i){var c=calc(r.len);h+='<tr><td>Run '+(i+1)+(r.air?" (aerial)":"")+'</td><td class="r">'+Math.round(r.len)+'</td><td class="r">'+num(c.I,1)+'</td><td class="r">'+num(c.dv,1)+'</td><td class="r'+(c.pc>3?" warn":"")+'">'+num(c.pc,1)+'</td><td>'+(c.pc>3?'<span class="warn">over 3%, use thicker wire</span>':"ok")+'</td></tr>'});h+='</table>';
+  var mx=0;runs.forEach(function(r){if(r.len>mx)mx=r.len});var best=null;Object.keys(AWG).sort(function(a,b){return b-a}).forEach(function(k){if(!best){var I=w/120;if(I*2*mx*AWG[k]/1000/120*100<=3)best=k}});
+  h+='<p class="pn">For the longest run ('+Math.round(mx)+' ft) at '+num(w)+' W the smallest wire that stays within 3% is <b>'+(best?best+" AWG":"thicker than 4 AWG")+'</b>.</p>'}
+ h+='<p class="pn">Single-phase 120 V, copper, drop = current x 2 x length x resistance per 1000 ft (NEC Chapter 9 Table 8 DC values: 14 AWG 3.07, 12 AWG 1.93, 10 AWG 1.21, 8 AWG 0.778, 6 AWG 0.491, 4 AWG 0.308 ohm/1000 ft). 3% is the usual design target for a branch circuit. This is a planning check, not a code review.</p>';return h}
+/* ---- hook into tabs and report ---- */
+var _tn=H.get("tblNet");H.set("tblNet",function(){var h=_tn.apply(this,arguments);return h+longHtml()+equip()+'<h4>Network diagram</h4>'+diagram()});
+var _tp=H.get("tblPwr");H.set("tblPwr",function(){return _tp.apply(this,arguments)+vdHtml()});
+var _br=H.get("buildReport");H.set("buildReport",function(){REP=true;try{return _br.apply(this,arguments)}finally{REP=false}});
 })();
 </script>
 </body></html>
