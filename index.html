@@ -1466,7 +1466,7 @@ var _br=H.get("buildReport");H.set("buildReport",function(){REP=true;try{return 
 <script>
 /* ---- radios: wireless links, office scale ---- */
 (function(){
-function setOW(){try{var z=map.getZoom(),lat=map.getCenter().lat,mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,z),px=mode==="plan"?70:Math.max(70,6.096/mpp);map.getContainer().style.setProperty("--ow",Math.min(px,900)+"px")}catch(e){}}
+function setOW(){try{var c=map.getCenter(),p0=map.latLngToContainerPoint(c),p1=map.latLngToContainerPoint(off({lat:c.lat,lng:c.lng},6.096,90)),px=Math.hypot(p1.x-p0.x,p1.y-p0.y);if(!(px>0))px=70;map.getContainer().style.setProperty("--ow",Math.max(3,Math.min(px,4000))+"px")}catch(e){}}
 map.on("zoom move zoomend moveend",setOW);setOW();
 var _dl3=drawLines;drawLines=function(){_dl3.apply(this,arguments);
  wls.forEach(function(k){var a=node(k.a),b=node(k.b);if(!a||!b)return;var d=ft(a,b),isSel=sel&&sel.t==="wl"&&sel.id===k.id;
