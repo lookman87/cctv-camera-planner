@@ -1332,6 +1332,8 @@ var HK=[["tm","M"],["tp","P"],["te","E"],["to","O"],["ta","C"],["ti","U"],["ty",
 HK.forEach(function(h){var b=$(h[0]);if(b){var base=(b.getAttribute("title")||b.textContent||"").replace(/\s*\(.\)$/,"").trim();b.title=base+" ("+h[1]+")"}});
 document.addEventListener("keydown",function(e){if(e.ctrlKey||e.metaKey||e.altKey)return;var t=e.target,tg=(t&&t.tagName)||"";if(tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||(t&&t.isContentEditable))return;
 var k=(e.key||"").toUpperCase();for(var i=0;i<HK.length;i++){if(HK[i][1]===k){var b=$(HK[i][0]);if(b&&!b.hidden){e.preventDefault();b.click()}return}}},true);
+/* Delete / Backspace removes the selected object or group */
+document.addEventListener("keydown",function(e){if(e.key!=="Delete"&&e.key!=="Backspace")return;var t=e.target,tg=(t&&t.tagName)||"";if(tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||(t&&t.isContentEditable))return;var d=$("del");if(!d||d.hidden||!(sel||hasSel()))return;e.preventDefault();d.click()});
 /* rail collapse */
 var rail=$("toolrow"),tm=$("tm");
 var S={low:"LV",high:"HV",bld:"Bld",tools:"Tool"};document.querySelectorAll(".gtab").forEach(function(b){b.dataset.s=S[b.dataset.g]||"";b.title=b.textContent});
