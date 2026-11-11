@@ -834,9 +834,16 @@ unb.onclick=function(){if(!backup)return;load(JSON.parse(backup));backup=null;un
 function find(){var v=document.getElementById("q").value.trim();if(!v)return;
 var m=v.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/),g=document.getElementById("gps");
 if(m){map.setView([+m[1],+m[2]],19);return}
-g.textContent="Searching...";
-fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(v)).then(function(r){return r.json()}).then(function(a){
-if(a&&a.length){map.setView([+a[0].lat,+a[0].lon],19);g.textContent=""}else g.textContent="Address not found. Try coordinates like 41.76, -88.32."}).catch(function(){g.textContent="Search failed. Check the internet or use coordinates."})}
+g.textContent="Searching...";gpsMsg("Searching...");
+var q=encodeURIComponent(v);
+function j(u){return fetch(u).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+var src=[
+ function(){return j("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+q).then(function(a){return a&&a.length?[+a[0].lat,+a[0].lon]:null})},
+ function(){return j("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&maxLocations=1&singleLine="+q).then(function(a){var c=a&&a.candidates&&a.candidates[0];return c?[c.location.y,c.location.x]:null})},
+ function(){return j("https://photon.komoot.io/api/?limit=1&q="+q).then(function(a){var f=a&&a.features&&a.features[0];return f?[f.geometry.coordinates[1],f.geometry.coordinates[0]]:null})}];
+var failed=0;
+(function next(i){if(i>=src.length){var t=failed===src.length?"Search failed. Check the internet or type coordinates like 41.76, -88.32.":"Address not found. Try a fuller address or coordinates like 41.76, -88.32.";g.textContent=t;gpsMsg(t);return}
+ src[i]().then(function(p){if(p){map.setView(p,19);g.textContent="";gpsMsg("Found")}else next(i+1)}).catch(function(){failed++;next(i+1)})})(0)}
 document.getElementById("go").onclick=find;
 document.getElementById("q").addEventListener("keydown",function(e){if(e.key==="Enter")find()});
 var meM=null,meC=null,watch=null,last=null;
