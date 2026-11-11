@@ -77,6 +77,32 @@ table.ct tr.tt td{border-top:1px solid #444a52;font-weight:600;color:#fff}
 #hint span{color:var(--mut,#6b6f76);font-size:13px;line-height:1.35;max-width:100%}
 #hint span:empty{display:none}
 body.present #hint,body.nohint #hint{display:none}
+/* ui2 */
+:root{--mut:#55544f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mut:#bcbab1}}
+:root[data-theme="dark"]{--mut:#bcbab1}
+#hint span{color:var(--fg)!important;opacity:.85}
+#sumbar{height:34px!important;font-size:13.5px!important}
+#mapwrap #ctxrow.float{right:auto!important;max-width:calc(100% - 120px);transition:none;padding:4px;border-radius:10px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);pointer-events:auto}
+#mapwrap #ctxrow.float #ar,#mapwrap #ctxrow.float #ms{display:none!important}
+#mapwrap #ctxrow.float::before{content:"";position:absolute;left:var(--ax,20px);top:-6px;width:10px;height:10px;background:var(--card);border-left:1px solid var(--bd);border-top:1px solid var(--bd);transform:rotate(45deg)}
+#mapwrap #ctxrow.float.up::before{top:auto;bottom:-6px;transform:rotate(225deg)}
+#objpanel{position:absolute;right:8px;top:56px;z-index:1400;width:270px;max-height:calc(100% - 70px);overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);padding:8px}
+#objpanel[hidden]{display:none}
+#objpanel h5{margin:8px 4px 3px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+#objpanel .orow{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:0;background:transparent;border-radius:7px;padding:5px 8px;font-size:13px;cursor:pointer}
+#objpanel .orow:hover{background:var(--hov)}#objpanel .orow.cur{background:var(--acc);color:#fff}
+#objpanel .orow span{color:var(--mut);font-size:12px}#objpanel .orow.cur span{color:#fff}
+#objpanel input{width:100%;box-sizing:border-box;margin-bottom:4px;padding:5px 8px}
+#railtog{font-size:11px!important;min-height:22px!important;padding:1px!important;color:var(--mut)}
+body.railmin #mapwrap #toolrow{width:50px}
+body.railmin #mapwrap #toolrow>button:not(.gtab):not(#railtog){font-size:0!important}
+body.railmin #mapwrap #toolrow .gtab{font-size:0!important}
+body.railmin #mapwrap #toolrow .gtab::after{content:attr(data-s);font-size:11px}
+body.railmin #mapwrap #toolrow #ctype{width:100%;font-size:10px;padding:1px!important}
+body.railmin #mapwrap #ctxrow:not(.float){left:70px}
+@media (max-width:900px){#basebar{gap:4px}#sgrp{flex-basis:100%!important}}
+
 #toolrow .gtab{font-size:11px!important;min-height:26px!important;padding:3px 2px!important;border:1px solid var(--bd)!important;border-radius:7px;background:transparent;font-weight:600}
 #toolrow .gtab.gon{background:var(--hov)!important;border-color:var(--acc)!important;color:var(--acc)}
 #mapwrap #toolrow [data-gh]{display:none!important}
@@ -717,7 +743,7 @@ function applyScale(f){function sc(p){p.lat=PCEN.lat+(p.lat-PCEN.lat)*f;p.lng=PC
 poles.forEach(sc);cams.forEach(function(c){if(!c.pole)sc(c)});bars.forEach(sc);aps.forEach(sc);cubs.forEach(sc);cabs.forEach(sc);srvs.forEach(sc);fences.forEach(function(x){x.pts.forEach(sc)});rulers.forEach(function(r){sc(r.a);sc(r.b)});if(office)sc(office);
 if(plan){plan.wm*=f;plan.hm*=f;plan.cal=true}showPlan();if(planLayer)map.fitBounds(planBounds(),{animate:false})}
 function updSum(){var tcm=0;cams.forEach(function(c){tcm+=c.n||1});var cat=0,nc=0,ov=0;RUNS.forEach(function(r){cat+=r.len*r.n;nc+=r.n;if(r.bad)ov+=r.n});var fb=0;SL.forEach(function(k){fb+=k.len});fibs.forEach(function(f){fb+=fibLen(f)});
-var p=[];p.push("<b>"+tcm+"</b> cameras");if(aps.length)p.push("<b>"+aps.length+"</b> AP");if(cabs.length)p.push("<b>"+cabs.length+"</b> IDF");if(srvs.length)p.push("<b>"+srvs.length+"</b> Server room");if(nc)p.push("Cat6 <b>"+nc+"</b> cables, <b>"+Math.round(cat)+"</b> ft");if(fb)p.push("Fiber <b>"+Math.round(fb)+"</b> ft");var pv=0,pvn=0,o120=0;cables.forEach(function(k){if(k.t==="v"){var a1=node(k.a),b1=node(k.b);if(a1&&b1){var d1=ft(a1,b1);pv+=d1;pvn++;if(k.air&&d1>MAX120)o120++}}});if(pvn)p.push("120 V <b>"+Math.round(pv)+"</b> ft");if(ov)p.push('<span class="warn">'+ov+" over 300 ft</span>");if(xfs.length)p.push("<b>"+xfs.length+"</b> transformer");if(o120)p.push('<span class="warn">'+o120+" aerial 120 V over 150 ft</span>");
+var p=[];p.push("<b>"+tcm+"</b> "+(tcm===1?"camera":"cameras"));if(aps.length)p.push("<b>"+aps.length+"</b> AP"+(aps.length>1?"s":""));if(cabs.length)p.push("<b>"+cabs.length+"</b> IDF"+(cabs.length>1?"s":""));if(srvs.length)p.push("<b>"+srvs.length+"</b> Server room"+(srvs.length>1?"s":""));if(nc)p.push("Cat6 <b>"+nc+"</b> cables, <b>"+Math.round(cat)+"</b> ft");if(fb)p.push("Fiber <b>"+Math.round(fb)+"</b> ft");var pv=0,pvn=0,o120=0;cables.forEach(function(k){if(k.t==="v"){var a1=node(k.a),b1=node(k.b);if(a1&&b1){var d1=ft(a1,b1);pv+=d1;pvn++;if(k.air&&d1>MAX120)o120++}}});if(pvn)p.push("120 V <b>"+Math.round(pv)+"</b> ft");if(ov)p.push('<span class="warn">'+ov+" over 300 ft</span>");if(xfs.length)p.push("<b>"+xfs.length+"</b> transformer"+(xfs.length>1?"s":""));if(o120)p.push('<span class="warn">'+o120+" aerial 120 V over 150 ft</span>");
 document.getElementById("sumtxt").innerHTML=p.join(" &nbsp;&middot;&nbsp; ")}
 document.getElementById("sumbar").onclick=function(){var i=document.getElementById("info"),o=!i.classList.contains("open");i.classList.toggle("open",o);document.getElementById("sumarrow").innerHTML=o?"&#9660;":"&#9650;"};
 function refresh(){FED=fedSet();drawMarkers();drawLines();updSum();status()}
@@ -1214,4 +1240,58 @@ box.querySelectorAll(".gtab").forEach(function(b){b.classList.toggle("gon",b.dat
 show(cur);
 new MutationObserver(function(rs){for(var i=0;i<rs.length;i++){var r=rs[i],el=r.target;if(el.classList.contains("on")&&(" "+(r.oldValue||"")+" ").indexOf(" on ")<0&&map[el.id]&&map[el.id]!==cur){show(map[el.id]);return}}}).observe(tr,{attributes:true,attributeFilter:["class"],attributeOldValue:true,subtree:true})})();
 </script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function mkMenu(id,label,items){var d=document.createElement("details");d.className="dd";d.id=id;var s=document.createElement("summary");s.innerHTML=label;d.appendChild(s);var pop=document.createElement("div");pop.className="pop";d.appendChild(pop);
+items.forEach(function(it){if(it==="-"){var x=document.createElement("div");x.className="sepx";pop.appendChild(x);return}var el=typeof it==="string"?$(it):it;if(el){el.hidden=false;pop.appendChild(el)}});
+pop.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("button"))d.open=false});return d}
+var ob=document.createElement("button");ob.id="objBtn";ob.textContent="Object list";document.body.appendChild(ob);
+/* 1. top bar menus */
+var vedit=$("vedit"),vm=$("vmenu");
+if(vedit){$("vnm").textContent="New map";$("vnp").textContent="New floor plan";$("vdup").textContent="Duplicate this variant";$("vdel").textContent="Delete this variant";var addm=mkMenu("addmenu","New &#9662;",["vnm","vnp","-","vdup","vdel"]);if(vm)vm.style.display="none";vedit.appendChild(addm)}
+var fg=$("fgrp");if(fg){var th=$("thm");if(th)th.textContent="Light / dark theme";var viewm=mkMenu("viewmenu","View &#9662;",["fit","pres","thm","hintBtn","-","objBtn"]);
+var fm=$("fmenu");if(fm)fg.insertBefore(viewm,fm);else fg.appendChild(viewm)}
+/* 7. objects list */
+var op=document.createElement("div");op.id="objpanel";op.hidden=true;$("mapwrap").appendChild(op);
+function nm(a,i,p){return p+" "+(i+1)}
+function rows(){var h="",q=($("objq")?$("objq").value:"").toLowerCase();
+function sec(t,list){list=list.filter(function(r){return !q||r.n.toLowerCase().indexOf(q)>=0});if(!list.length)return;h+="<h5>"+t+"</h5>";list.forEach(function(r){var cur=sel&&sel.t===r.t&&sel.id===r.id;h+='<button class="orow'+(cur?" cur":"")+'" data-t="'+r.t+'" data-i="'+r.id+'" data-la="'+r.la+'" data-lo="'+r.lo+'">'+r.n+'<span>'+(r.x||"")+'</span></button>'})}
+sec("Poles",poles.map(function(p,i){return{t:"p",id:p.id,la:p.lat,lo:p.lng,n:"Pole "+(i+1),x:isPw(p)?"power":""}}));
+sec("Cameras",cams.map(function(c,i){var ct=(typeof CAMS!=="undefined"&&CAMS[c.t])?CAMS[c.t].nm:"";return{t:"a",id:c.id,la:c.lat,lo:c.lng,n:"C"+(typeof pad==="function"?pad(i+1):i+1),x:ct}}));
+var bl=[];if(typeof office!=="undefined"&&office)bl.push({t:"o",id:0,la:office.lat,lo:office.lng,n:"Office"});cabs.forEach(function(c){bl.push({t:"cab",id:c.id,la:c.lat,lo:c.lng,n:c.name||"IDF"})});srvs.forEach(function(c){bl.push({t:"srv",id:c.id,la:c.lat,lo:c.lng,n:c.name||"Server room"})});aps.forEach(function(c,i){bl.push({t:"ap",id:c.id,la:c.lat,lo:c.lng,n:"AP "+(i+1)})});xfs.forEach(function(c,i){bl.push({t:"xf",id:c.id,la:c.lat,lo:c.lng,n:"Transformer "+(i+1)})});
+sec("Buildings and equipment",bl);
+sec("Cables",cables.map(function(k,i){var a=node(k.a),b=node(k.b);if(!a||!b)return null;var d=Math.round(ft(a,b));return{t:"c",id:k.id,la:(a.lat+b.lat)/2,lo:(a.lng+b.lng)/2,n:(k.t==="v"?(k.air?"120 V air":"120 V"):k.t==="f"?"Fiber":"Cat6")+" "+(i+1),x:d+" ft"}}).filter(Boolean));
+return h||'<div style="padding:8px;color:var(--mut)">Nothing here yet.</div>'}
+function drawObj(){if(op.hidden)return;var v=$("objq")?$("objq").value:"";var f=document.activeElement&&document.activeElement.id==="objq";op.innerHTML='<input id="objq" placeholder="Search..." value="'+v.replace(/"/g,"&quot;")+'"><div id="objl">'+rows()+"</div>";if(f){var e=$("objq");e.focus();e.setSelectionRange(v.length,v.length)}}
+ob.onclick=function(){op.hidden=!op.hidden;drawObj()};
+op.addEventListener("input",function(e){if(e.target.id==="objq"){var l=$("objl");if(l)l.innerHTML=rows()}});
+op.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".orow");if(!b)return;var la=+b.dataset.la,lo=+b.dataset.lo,t=b.dataset.t,id=+b.dataset.i;map.panTo([la,lo]);if(t!=="o"){try{if(typeof clearSel==="function")clearSel()}catch(x){}sel={t:t,id:id};refresh()}drawObj()});
+(function(){var rf=refresh;refresh=function(){rf.apply(this,arguments);try{drawObj();placeCtx()}catch(e){}};map.on("click",function(){setTimeout(function(){drawObj();placeCtx()},30)})})();
+/* 2. floating action bar */
+var cr=$("ctxrow"),mw=$("mapwrap");
+function placeCtx(){if(!cr||!mw)return;var vis=cr.offsetParent!==null||getComputedStyle(cr).display!=="none";
+var el=document.querySelector("#map .leaflet-marker-icon.sel,#map [class~=sel]");if(!sel||!el||getComputedStyle(cr).display==="none"){cr.classList.remove("float","up");cr.style.left=cr.style.top="";return}
+var r=el.getBoundingClientRect(),m=mw.getBoundingClientRect();if(!r.width&&!r.height){cr.classList.remove("float","up");return}
+cr.classList.add("float");cr.style.left="0px";cr.style.top="0px";var cw=cr.offsetWidth,ch=cr.offsetHeight;
+var cx=r.left+r.width/2-m.left,x=Math.max(70,Math.min(cx-cw/2,m.width-cw-8)),y=r.bottom-m.top+12,up=false;
+if(y+ch>m.height-8){y=r.top-m.top-ch-12;up=true}if(y<8)y=8;
+cr.style.left=x+"px";cr.style.top=y+"px";cr.style.setProperty("--ax",Math.max(10,Math.min(cw-20,cx-x-5))+"px");cr.classList.toggle("up",up)}
+map.on("move zoom moveend zoomend",placeCtx);window.addEventListener("resize",placeCtx);
+/* 4. hotkeys and tooltips */
+var HK=[["tm","M"],["tp","P"],["te","E"],["to","O"],["ta","C"],["ti","U"],["ty","S"],["tn","I"],["tz","T"],["tr","R"],["tw","F"],["tb","G"],["tc","1"],["tf","2"],["tv","3"],["tu","4"]];
+HK.forEach(function(h){var b=$(h[0]);if(b){var base=(b.getAttribute("title")||b.textContent||"").replace(/\s*\(.\)$/,"").trim();b.title=base+" ("+h[1]+")"}});
+document.addEventListener("keydown",function(e){if(e.ctrlKey||e.metaKey||e.altKey)return;var t=e.target,tg=(t&&t.tagName)||"";if(tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||(t&&t.isContentEditable))return;
+var k=(e.key||"").toUpperCase();for(var i=0;i<HK.length;i++){if(HK[i][1]===k){var b=$(HK[i][0]);if(b&&!b.hidden){e.preventDefault();b.click()}return}}},true);
+/* rail collapse */
+var rail=$("toolrow"),tm=$("tm");
+var S={low:"LV",high:"HV",bld:"Bld",tools:"Tool"};document.querySelectorAll(".gtab").forEach(function(b){b.dataset.s=S[b.dataset.g]||"";b.title=b.textContent});
+var rt=document.createElement("button");rt.id="railtog";rt.title="Collapse or expand the tool panel";rail.insertBefore(rt,rail.firstChild);
+function rmin(v){document.body.classList.toggle("railmin",v);rt.innerHTML=v?"&raquo;":"&laquo; Collapse";try{localStorage.setItem("pp-railmin",v?"1":"0")}catch(e){};setTimeout(placeCtx,50)}
+var rv=null;try{rv=localStorage.getItem("pp-railmin")}catch(e){}rmin(rv===null?innerWidth<900:rv==="1");
+rt.onclick=function(){rmin(!document.body.classList.contains("railmin"))};
+placeCtx();
+})();
+</script>
 </body></html>
+
