@@ -725,7 +725,7 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <hr>
 <label><input type="checkbox" id="c_rings" checked>Rings</label>
 <label><input type="checkbox" id="c_lab" checked>Labels</label>
-<label><input type="checkbox" id="c_what" checked>If repaired</label>
+<label title="Estimate for broken poles, based on the working ones"><input type="checkbox" id="c_what">If repaired</label>
 <label><input type="checkbox" id="c_heat">Heat map</label>
 <label><input type="checkbox" id="c_pts" checked>Readings</label>
 <hr>
@@ -744,8 +744,9 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <script>
 (function(){
 var KEY="lightsurvey1";
-var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:1,lab:1,what:1,heat:0,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
+var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:1,lab:1,what:0,heat:0,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
 try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k]}}catch(e){}
+if(S.ver!==2){S.ver=2;S.show.what=0}
 var $=function(i){return document.getElementById(i)};
 var tool="move",sel=null;
 var FT=364567;
@@ -779,7 +780,7 @@ function avgProfile(P){var m={},c={};P.forEach(function(r){r.bands.forEach(funct
 function circ(p,r){var a=[];for(var i=0;i<72;i++)a.push(dest(p,i*5,r));return a}
 function drawRings(P){gRing.clearLayers();gLab.clearLayers();if(!S.show.rings)return;
  function ring(p,bands,est){bands.slice().reverse().forEach(function(b){var o=circ(p,b.k*S.step),rings=[o];if(b.k>1)rings.push(circ(p,(b.k-1)*S.step));var c=col(b.v);L.polygon(rings,{interactive:false,color:c,weight:est?1.5:1,dashArray:est?"4 5":null,fillColor:c,fillOpacity:est?.22:.42,opacity:.9}).addTo(gRing)});
-  if(S.show.lab)bands.forEach(function(b){var pos=dest(p,(p._lb||0),(b.k-.5)*S.step);var h='<span class="rl'+((b.est||est)?" est":"")+'"><b style="background:'+col(b.v)+'"></b>'+(b.k*S.step)+"&prime; "+f1(b.v)+"</span>";L.marker(pos,{interactive:false,icon:L.divIcon({className:"",html:h,iconSize:[0,0]})}).addTo(gLab)})}
+  if(S.show.lab)bands.forEach(function(b){var pos=dest(p,(p._lb||0),(b.k-.5)*S.step);var h='<span class="rl'+((b.est||est)?" est":"")+'"><b style="background:'+col(b.v)+'"></b>'+(est?"~":"")+(b.k*S.step)+" ft "+f1(b.v)+"</span>";L.marker(pos,{interactive:false,icon:L.divIcon({className:"",html:h,iconSize:[0,0]})}).addTo(gLab)})}
  P.forEach(function(r){ring(r.pole,r.bands,0)});
  if(S.show.what&&P.length){var ap=avgProfile(P);S.poles.forEach(function(p){if(!p.on&&ap.length){var pp={lat:p.lat,lng:p.lng,_lb:0};ring(pp,ap,1)}})}}
 function pIcon(p){var i=S.poles.indexOf(p)+1;return L.divIcon({className:"",html:'<div class="pole'+(p.on?"":" off")+(sel&&sel.t==="p"&&sel.id===p.id?" sel":"")+'"><div>'+esc(p.name||("P"+i))+"</div></div>",iconSize:[0,0]})}
@@ -858,7 +859,7 @@ function repPanel(){var P=profiles(),h="",V=S.pts.filter(function(p){return p.fc
  /* missing */
  var miss=[];S.poles.forEach(function(p){if(!p.on)return;var r=null;P.forEach(function(q){if(q.pole===p)r=q});if(!r)miss.push(esc(p.name)+": no readings yet");else{var k=r.max+1;miss.push(esc(p.name)+": next reading at "+k*S.step+" ft")}});
  if(miss.length)h+='<div style="margin-top:8px"><b>To measure next</b><br><span class="mut">'+miss.join("<br>")+"</span></div>";
- if(off&&P.length){var ap2=avgProfile(P);h+='<div style="margin-top:8px"><b>Not working</b><br><span class="mut">'+S.poles.filter(function(p){return!p.on}).map(function(p){var near=V.filter(function(x){var a=nearestPole(x);return a&&a.pole===p});return esc(p.name)+(near.length?": readings next to it average "+f1(avg(near.map(function(x){return x.fc})))+" fc":"")}).join("<br>")+"<br>If repaired it should give about "+ap2.slice(0,3).map(function(x){return f1(x.v)+" fc at "+x.k*S.step+" ft"}).join(", ")+" (dashed rings on the map).</span></div>"}
+ if(off&&P.length){var ap2=avgProfile(P);h+='<div style="margin-top:8px"><b>Not working</b><br><span class="mut">'+S.poles.filter(function(p){return!p.on}).map(function(p){var near=V.filter(function(x){var a=nearestPole(x);return a&&a.pole===p});return esc(p.name)+(near.length?": readings next to it average "+f1(avg(near.map(function(x){return x.fc})))+" fc":"")}).join("<br>")+"<br>If repaired it should give about "+ap2.slice(0,3).map(function(x){return f1(x.v)+" fc at "+x.k*S.step+" ft"}).join(", ")+" (turn on If repaired to see it on the map).</span></div>"}
  $("rep").innerHTML=h;var dk2=$("dk");if(dk2)dk2.onchange=function(){S.dark=+this.value||0;refresh()}}
 function drawAll(){var P=profiles();drawRings(P)}
 function refresh(full){drawMarkers();drawAll();clearTimeout(heatT);heatT=setTimeout(drawHeat,60);repPanel();if(full)selPanel();save()}
