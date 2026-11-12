@@ -272,6 +272,7 @@ body.rptprint #rpt{display:block;font:12px/1.35 system-ui,sans-serif;color:#000;
 <button id="tn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="1.5"/><path d="M9 7h6M9 12h6M9 17h6"/></svg>IDF</button>
 <button id="tz"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5v3.5M15 2.5v3.5"/><rect x="5" y="6" width="14" height="15.5" rx="3.5" fill="#fb923c" stroke="#c2410c"/><path d="M13.2 9.5l-3 5h3.6l-3 5" stroke="#fff" stroke-width="1.9"/></svg>Transformer</button>
 <span class="sep"></span>
+<button id="tclean" title="Remove everything you placed on the map (Undo brings it back)"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Clean all</button>
 <button id="tr"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg>Ruler</button>
 <button id="ts" hidden><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 8v8M21 8v8M8 12v-3M12 12v-3M16 12v-3"/></svg>Set scale</button>
 <button id="tx" hidden><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h8v8"/></svg>Cubicle</button>
@@ -842,7 +843,8 @@ else if(sel.t==="cab"){var jc=sel.id;fibs=fibs.filter(function(g){return g.a!==j
 else if(sel.t==="r"){var jr=sel.id;rulers=rulers.filter(function(g){return g.id!==jr})}
 else{var j=sel.id;cables=cables.filter(function(k){return k.id!==j})}sel=null;save();refresh()};
 var backup=null,unb=document.getElementById("un");
-document.getElementById("cl").onclick=function(){if(!poles.length&&!cables.length&&!cams.length&&!fences.length&&!bars.length&&!office&&!aps.length&&!cubs.length&&!rulers.length&&!cabs.length&&!srvs.length)return;
+document.getElementById("tclean").onclick=function(){if(!(poles.length+cables.length+cams.length+fences.length+bars.length+aps.length+cubs.length+rulers.length+cabs.length+srvs.length+xfs.length+nets.length+wls.length||office))return;if(!confirm("Remove everything on the map? You can bring it back with Undo right after."))return;document.getElementById("cl").onclick()};
+document.getElementById("cl").onclick=function(){if(!poles.length&&!cables.length&&!cams.length&&!fences.length&&!bars.length&&!office&&!aps.length&&!cubs.length&&!rulers.length&&!cabs.length&&!srvs.length&&!xfs.length&&!nets.length&&!wls.length)return;
 backup=JSON.stringify(data());poles=[];cables=[];cams=[];fences=[];bars=[];aps=[];cubs=[];rulers=[];cabs=[];srvs=[];xfs=[];nets=[];wls=[];fibs=[];draft=[];office=null;sel=null;start=null;unb.hidden=false;save();refresh()};
 unb.onclick=function(){if(!backup)return;load(JSON.parse(backup));backup=null;unb.hidden=true;sel=null;start=null;save();refresh()};
 function find(){var v=document.getElementById("q").value.trim();if(!v)return;
@@ -1280,7 +1282,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!d.hidden){
 </script>
 <script>
 (function(){var tr=document.getElementById("toolrow"),tm=document.getElementById("tm");if(!tr||!tm)return;
-var G=[["low","Low voltage",["tp","ta","ctype","ti","tc","tf","tns","tnc","tnw","tnl"]],["high","High voltage",["te","tz","tv","tu"]],["bld","Buildings",["to","ty","tn"]],["tools","Tools",["tr","tw","tb"]]];
+var G=[["low","Low voltage",["tp","ta","ctype","ti","tc","tf","tns","tnc","tnw","tnl"]],["high","High voltage",["te","tz","tv","tu"]],["bld","Buildings",["to","ty","tn"]],["tools","Tools",["tr","tw","tb","tclean"]]];
 var cur="low";try{cur=localStorage.getItem("pp-tab")||"low"}catch(e){}
 var box=document.createElement("div");box.id="gtabs";tm.parentNode.insertBefore(box,tm.nextSibling);
 var map={};G.forEach(function(g){g[2].forEach(function(id){var el=document.getElementById(id);if(el)map[id]=g[0]})});
