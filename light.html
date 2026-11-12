@@ -700,7 +700,7 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 .pole{width:34px;height:34px;margin:-17px 0 0 -17px}.pole div{width:100%;height:100%;border-radius:50%;background:#fff;border:3px solid #34c759;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,.45)}
 .pole.off div{border-color:#ff3b30;background:#ffe3e1}.pole.sel div{box-shadow:0 0 0 4px var(--acc),0 2px 6px rgba(0,0,0,.45)}
 .pt{width:34px;height:34px;margin:-17px 0 0 -17px}.pt div{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}.pt.sel div{box-shadow:0 0 0 4px var(--acc),0 2px 6px rgba(0,0,0,.5)}
-.rl{background:rgba(20,20,22,.78);color:#fff;border-radius:9px;padding:1px 7px;font-size:11px;font-weight:600;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}.rl.est{opacity:.7;font-style:italic}.rl b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.rl{background:rgba(20,20,22,.78);color:#fff;border-radius:9px;padding:1px 7px;font-size:11px;font-weight:600;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}.rl.est{opacity:.7;font-style:italic}.rl b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;border:1px solid rgba(255,255,255,.7)}
 .leaflet-container{cursor:crosshair}.hand .leaflet-container{cursor:grab}
 @media(max-width:760px){#side{top:auto;height:46%;width:auto;left:10px}#legend{max-width:calc(100% - 20px);bottom:calc(46% + 20px)}#hint{max-width:90%;top:auto;bottom:calc(46% + 70px)}#rail{width:64px}#rail button span{display:none}}
 .leaflet-bottom.leaflet-right{margin-right:380px;margin-bottom:6px}
@@ -756,8 +756,10 @@ function fm(n){return Math.round(n)+" ft ("+Math.round(n*.3048)+" m)"}
 function f1(v){return v>=10?v.toFixed(0):v>=1?v.toFixed(1):v.toFixed(2)}
 function save(){try{S.v={lat:map.getCenter().lat,lng:map.getCenter().lng,z:map.getZoom()};localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 /* scale */
-var SC=[[5,"#34c759","5 fc and up"],[2,"#a4d65e","2 to 5"],[1,"#ffd60a","1 to 2"],[.5,"#ff9f0a","0.5 to 1"],[.2,"#ff453a","0.2 to 0.5"],[0,"#8e2a6b","under 0.2"]];
-function col(v){for(var i=0;i<SC.length;i++)if(v>=SC[i][0])return SC[i][1];return SC[SC.length-1][1]}
+var ST=[[0,"#2b0a5e"],[.25,"#3a37d6"],[.5,"#1f8ef1"],[1,"#17c3d6"],[2,"#22c36a"],[3,"#8bd33a"],[4,"#e2e51c"],[6,"#ffc400"],[8,"#ff8a00"],[10,"#ff4d1f"],[15,"#e0102a"]];
+function hx(c){return[parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)]}
+function col(v){if(v<=ST[0][0])return ST[0][1];var n=ST.length;if(v>=ST[n-1][0])return ST[n-1][1];for(var i=1;i<n;i++){if(v<=ST[i][0]){var a=hx(ST[i-1][1]),b=hx(ST[i][1]),t=(v-ST[i-1][0])/(ST[i][0]-ST[i-1][0]),r=[0,1,2].map(function(k){return Math.round(a[k]+(b[k]-a[k])*t)});return"#"+r.map(function(x){return("0"+x.toString(16)).slice(-2)}).join("")}}}
+function tx(c){var r=hx(c);return(r[0]*.299+r[1]*.587+r[2]*.114)<140?"#fff":"#111"}
 /* map */
 var map=L.map("map",{zoomControl:false,maxZoom:23,doubleClickZoom:false}).setView([S.v.lat,S.v.lng],S.v.z);
 var TURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
@@ -781,7 +783,7 @@ function drawRings(P){gRing.clearLayers();gLab.clearLayers();if(!S.show.rings)re
  P.forEach(function(r){ring(r.pole,r.bands,0)});
  if(S.show.what&&P.length){var ap=avgProfile(P);S.poles.forEach(function(p){if(!p.on&&ap.length){var pp={lat:p.lat,lng:p.lng,_lb:0};ring(pp,ap,1)}})}}
 function pIcon(p){var i=S.poles.indexOf(p)+1;return L.divIcon({className:"",html:'<div class="pole'+(p.on?"":" off")+(sel&&sel.t==="p"&&sel.id===p.id?" sel":"")+'"><div>'+esc(p.name||("P"+i))+"</div></div>",iconSize:[0,0]})}
-function tIcon(pt){var s=sel&&sel.t==="m"&&sel.id===pt.id;return L.divIcon({className:"",html:'<div class="pt'+(s?" sel":"")+'"><div style="background:'+(pt.fc==null?"#bbb":col(pt.fc))+'">'+(pt.fc==null?"?":f1(pt.fc))+"</div></div>",iconSize:[0,0]})}
+function tIcon(pt){var s=sel&&sel.t==="m"&&sel.id===pt.id;return L.divIcon({className:"",html:'<div class="pt'+(s?" sel":"")+'"><div style="background:'+(pt.fc==null?"#bbb":col(pt.fc))+';color:'+(pt.fc==null?"#111":tx(col(pt.fc)))+'">'+(pt.fc==null?"?":f1(pt.fc))+"</div></div>",iconSize:[0,0]})}
 function drawMarkers(){gPol.clearLayers();gPts.clearLayers();
  S.poles.forEach(function(p){var m=L.marker([p.lat,p.lng],{icon:pIcon(p),draggable:tool==="move",zIndexOffset:900}).addTo(gPol);
   m.on("click",function(e){L.DomEvent.stopPropagation(e);select({t:"p",id:p.id})});
@@ -805,7 +807,7 @@ function drawHeat(){gHeat.clearLayers();heatOv=null;if(!S.show.heat)return;var V
  var sw1=[miny+0,minx],sw2=[maxy,maxx];var b=[[la0+miny/FT,lo0+minx/(FT*cs)],[la0+maxy/FT,lo0+maxx/(FT*cs)]];
  heatOv=L.imageOverlay(cv.toDataURL(),b,{opacity:1,interactive:false}).addTo(gHeat)}
 /* panels */
-function legend(){$("legend").innerHTML='<b>Foot-candles</b>'+SC.map(function(s){return'<span><i style="background:'+s[1]+'"></i>'+s[2]+"</span>"}).join("")}
+function legend(){var g="linear-gradient(90deg,"+ST.map(function(x,i){return col(x[0])+" "+(i/(ST.length-1)*100)+"%"}).join(",")+")";$("legend").innerHTML='<div><b>Foot-candles</b> <span class="mut">dark to bright</span><div style="width:300px;height:12px;border-radius:6px;margin:5px 0 2px;background:'+g+'"></div><div style="display:flex;justify-content:space-between;width:300px;font-size:11px;color:var(--mut)">'+ST.map(function(x){return"<span>"+x[0]+"</span>"}).join("")+"</div></div>"}
 function hint(){var t={move:"Drag poles and readings to move them. Click one to edit it.",pole:"Tap the map to put a light pole. Mark broken poles as Not working.",meas:"Tap where you stood, then type the number from the meter and press Enter."}[tool];$("hint").textContent=t}
 function setTool(t){tool=t;["move","pole","meas"].forEach(function(k){$("t_"+k).classList.toggle("on",k===t)});document.getElementById("map").classList.toggle("hand",t==="move");cleanup();hint();drawMarkers()}
 function cleanup(){S.pts=S.pts.filter(function(p){return p.fc!=null||(sel&&sel.t==="m"&&sel.id===p.id)})}
@@ -843,12 +845,12 @@ function repPanel(){var P=profiles(),h="",V=S.pts.filter(function(p){return p.fc
  var on=S.poles.filter(function(p){return p.on}).length,off=S.poles.length-on;
  h+='<div class="row"><span class="tag on">'+on+" working</span>"+(off?'<span class="tag off">'+off+" not working</span>":"")+'<span class="mut">'+V.length+" readings</span></div>";
  if(V.length){var mn=Math.min.apply(null,V.map(function(x){return x.fc})),mx=Math.max.apply(null,V.map(function(x){return x.fc})),av=avg(V.map(function(x){return x.fc})),dk=V.filter(function(x){return x.fc<S.dark}).length;
-  h+='<table><tr><th>Min</th><th>Average</th><th>Max</th><th>Avg : min</th></tr><tr><td><span class="chip" style="background:'+col(mn)+'">'+f1(mn)+'</span></td><td><span class="chip" style="background:'+col(av)+'">'+f1(av)+'</span></td><td><span class="chip" style="background:'+col(mx)+'">'+f1(mx)+"</span></td><td>"+(mn>0?(av/mn).toFixed(1)+" : 1":"-")+"</td></tr></table>";
+  h+='<table><tr><th>Min</th><th>Average</th><th>Max</th><th>Avg : min</th></tr><tr><td><span class="chip" style="background:'+col(mn)+';color:'+tx(col(mn))+'">'+f1(mn)+'</span></td><td><span class="chip" style="background:'+col(av)+';color:'+tx(col(av))+'">'+f1(av)+'</span></td><td><span class="chip" style="background:'+col(mx)+';color:'+tx(col(mx))+'">'+f1(mx)+"</span></td><td>"+(mn>0?(av/mn).toFixed(1)+" : 1":"-")+"</td></tr></table>";
   h+='<div class="row mut">Dark spots below <input id="dk" type="number" step="0.1" min="0" value="'+S.dark+'" style="width:64px"> fc: <b class="'+(dk?"warn":"ok")+'">'+dk+" of "+V.length+"</b></div>"}
  var mxk=0;P.forEach(function(r){mxk=Math.max(mxk,r.max)});
  if(P.length){h+="<table><tr><th>Pole</th>";for(var k=1;k<=mxk;k++)h+="<th>"+k*S.step+" ft</th>";h+="</tr>";
-  P.forEach(function(r){h+="<tr><td><b>"+esc(r.pole.name)+"</b></td>";for(var k=1;k<=mxk;k++){var b=null;r.bands.forEach(function(x){if(x.k===k)b=x});h+="<td>"+(b?'<span class="chip'+(b.est?" est":"")+'" style="background:'+col(b.v)+'" title="'+(b.n?b.n+" reading(s), "+f1(b.min)+" to "+f1(b.max):"estimated")+'">'+f1(b.v)+"</span>":"")+"</td>"}h+="</tr>"});
-  var ap=avgProfile(P);h+='<tr><td class="mut">Average</td>';for(var k2=1;k2<=mxk;k2++){var bb=null;ap.forEach(function(x){if(x.k===k2)bb=x});h+="<td>"+(bb?'<span class="chip" style="background:'+col(bb.v)+'">'+f1(bb.v)+"</span>":"")+"</td>"}h+="</tr></table>";
+  P.forEach(function(r){h+="<tr><td><b>"+esc(r.pole.name)+"</b></td>";for(var k=1;k<=mxk;k++){var b=null;r.bands.forEach(function(x){if(x.k===k)b=x});h+="<td>"+(b?'<span class="chip'+(b.est?" est":"")+'" style="background:'+col(b.v)+';color:'+tx(col(b.v))+'" title="'+(b.n?b.n+" reading(s), "+f1(b.min)+" to "+f1(b.max):"estimated")+'">'+f1(b.v)+"</span>":"")+"</td>"}h+="</tr>"});
+  var ap=avgProfile(P);h+='<tr><td class="mut">Average</td>';for(var k2=1;k2<=mxk;k2++){var bb=null;ap.forEach(function(x){if(x.k===k2)bb=x});h+="<td>"+(bb?'<span class="chip" style="background:'+col(bb.v)+';color:'+tx(col(bb.v))+'">'+f1(bb.v)+"</span>":"")+"</td>"}h+="</tr></table>";
   h+='<div class="mut" style="margin-top:4px">Light grey italic numbers are estimated between two readings.</div>';
   /* comparison */
   var notes=[];if(P.length>1)P.forEach(function(r){r.bands.forEach(function(b){if(b.est)return;var o=[];P.forEach(function(q){if(q!==r)q.bands.forEach(function(x){if(x.k===b.k)o.push(x.v)})});if(!o.length)return;var a=avg(o);if(b.v<a*.7)notes.push(esc(r.pole.name)+" is "+Math.round((1-b.v/a)*100)+"% dimmer than the other poles at "+b.k*S.step+" ft")})});
