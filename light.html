@@ -722,6 +722,7 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <button id="t_move" class="on"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>Move</span></button>
 <button id="t_pole"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M12 10.5V21M8 21h8"/></svg><span>Light pole</span></button>
 <button id="t_meas"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Reading</span></button>
+<button id="t_area"><svg viewBox="0 0 24 24"><path d="M4 6l9-2 7 6-3 9-11 1z" stroke-dasharray="2.5 2.5"/><circle cx="4" cy="6" r="1.2"/><circle cx="13" cy="4" r="1.2"/><circle cx="20" cy="10" r="1.2"/><circle cx="17" cy="19" r="1.2"/><circle cx="6" cy="20" r="1.2"/></svg><span>Area</span></button>
 <hr>
 <label><input type="checkbox" id="c_rings">Rings</label>
 <label title="Numbers on the rings"><input type="checkbox" id="c_lab">Ring numbers</label>
@@ -745,11 +746,11 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <script>
 (function(){
 var KEY="lightsurvey1";
-var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:0,lab:0,dist:0,what:0,heat:1,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
+var S={poles:[],pts:[],areas:[],nid:1,step:30,dark:0.5,show:{rings:0,lab:0,dist:0,what:0,heat:1,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
 try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k]}}catch(e){}
 if(S.ver!==4){S.ver=4;S.show.what=0;S.show.heat=1;S.show.rings=0;S.show.lab=0;S.show.dist=0}
 var $=function(i){return document.getElementById(i)};
-var tool="move",sel=null;
+var tool="move",sel=null,draft=[];
 var FT=364567;
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function dft(a,b){var R=20902231,r=Math.PI/180,dl=(b.lat-a.lat)*r,dg=(b.lng-a.lng)*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dg/2)*Math.sin(dg/2);return 2*R*Math.asin(Math.sqrt(x))}
@@ -767,6 +768,7 @@ var map=L.map("map",{zoomControl:false,maxZoom:23,doubleClickZoom:false}).setVie
 var TURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 L.tileLayer(TURL,{maxNativeZoom:19,maxZoom:23,attribution:"Imagery: Esri, Maxar, Earthstar Geographics"}).addTo(map);
 L.control.zoom({position:"bottomright"}).addTo(map);
+var gArea=L.layerGroup().addTo(map),gDraft=L.layerGroup().addTo(map);
 var gHeat=L.layerGroup().addTo(map),gRing=L.layerGroup().addTo(map),gLab=L.layerGroup().addTo(map),gPts=L.layerGroup().addTo(map),gPol=L.layerGroup().addTo(map);
 function poleById(id){for(var i=0;i<S.poles.length;i++)if(S.poles[i].id===id)return S.poles[i];return null}
 function ptById(id){for(var i=0;i<S.pts.length;i++)if(S.pts[i].id===id)return S.pts[i];return null}
@@ -810,19 +812,54 @@ function fieldCtx(){var V=S.pts.filter(function(p){return p.fc!=null});var P=pro
  return{V:V,X:X,at:at,la0:la0,lo0:lo0,cs:cs,tf:tf,WP:WP}}
 function drawHeat(){gHeat.clearLayers();heatOv=null;if(!S.show.heat)return;var C=fieldCtx();if(C.X.length<1)return;
  var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;C.X.concat(S.poles.map(C.tf)).forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)});
+ S.areas.forEach(function(a){a.pts.forEach(function(ll){var q=C.tf({lat:ll[0],lng:ll[1]});minx=Math.min(minx,q.x);maxx=Math.max(maxx,q.x);miny=Math.min(miny,q.y);maxy=Math.max(maxy,q.y)})});
  profiles().forEach(function(r){var q=C.tf(r.pole),R=(r.max+1.5)*S.step;minx=Math.min(minx,q.x-R);maxx=Math.max(maxx,q.x+R);miny=Math.min(miny,q.y-R);maxy=Math.max(maxy,q.y+R)});var pad=S.step*1.2;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var cell=Math.max(3,Math.max(maxx-minx,maxy-miny)/170),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell);
- var cv=document.createElement("canvas");cv.width=W;cv.height=H;var cx=cv.getContext("2d"),im=cx.createImageData(W,H);
+ var cv=document.createElement("canvas");cv.width=W;cv.height=H;var cx=cv.getContext("2d"),im=cx.createImageData(W,H);var AP=S.areas.map(function(a){return a.pts.map(function(ll){return C.tf({lat:ll[0],lng:ll[1]})})});
  for(var j=0;j<H;j++)for(var i=0;i<W;i++){var x=minx+(i+.5)*cell,y=maxy-(j+.5)*cell,r=C.at(x,y),o=(j*W+i)*4;
-  var a=Math.max(0,Math.min(1,(S.step*2.2-r.nd)/(S.step*1.1)));if(r.ins>0)a=Math.max(a,Math.min(1,r.ins/(S.step*.8)));if(a<=0){im.data[o+3]=0;continue}
+  var a=Math.max(0,Math.min(1,(S.step*2.2-r.nd)/(S.step*1.1)));if(r.ins>0)a=Math.max(a,Math.min(1,r.ins/(S.step*.8)));if(AP.length&&inAny(AP,x,y))a=1;if(a<=0){im.data[o+3]=0;continue}
   var c=hx(col(r.v));im.data[o]=c[0];im.data[o+1]=c[1];im.data[o+2]=c[2];im.data[o+3]=Math.round(a*105)}
  cx.putImageData(im,0,0);var cs=C.cs,la0=C.la0,lo0=C.lo0;
  var b=[[la0+miny/FT,lo0+minx/(FT*cs)],[la0+maxy/FT,lo0+maxx/(FT*cs)]];
  heatOv=L.imageOverlay(cv.toDataURL(),b,{opacity:1,interactive:false,className:"smooth"}).addTo(gHeat)}
 function probe(ll){var C=fieldCtx();if(!C.X.length)return null;var q=C.tf({lat:ll.lat,lng:ll.lng});return C.at(q.x,q.y).v}
+/* areas */
+function inPoly(P,x,y){var c=false;for(var i=0,j=P.length-1;i<P.length;j=i++){if(((P[i].y>y)!==(P[j].y>y))&&(x<(P[j].x-P[i].x)*(y-P[i].y)/(P[j].y-P[i].y)+P[i].x))c=!c}return c}
+function inAny(L2,x,y){for(var i=0;i<L2.length;i++)if(inPoly(L2[i],x,y))return true;return false}
+function areaById(id){for(var i=0;i<S.areas.length;i++)if(S.areas[i].id===id)return S.areas[i];return null}
+function analyze(a){var C=fieldCtx();if(!C.X.length)return null;var P=a.pts.map(function(ll){return C.tf({lat:ll[0],lng:ll[1]})});
+ var ar=0;for(var i=0,j=P.length-1;i<P.length;j=i++)ar+=(P[j].x*P[i].y-P[i].x*P[j].y);ar=Math.abs(ar)/2;
+ var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;P.forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)});
+ var cell=Math.max(3,Math.sqrt(ar/5000)),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell),vals=[],grid=[],far=0,dk=0,mn=1e9,mx=-1e9,sum=0;
+ for(var j2=0;j2<H;j2++){grid[j2]=[];for(var i2=0;i2<W;i2++){var x=minx+(i2+.5)*cell,y=miny+(j2+.5)*cell;if(!inPoly(P,x,y)){grid[j2][i2]=null;continue}var r=C.at(x,y);grid[j2][i2]=r.v;vals.push(r.v);sum+=r.v;if(r.v<mn)mn=r.v;if(r.v>mx)mx=r.v;if(r.v<S.dark)dk++;if(r.nd>S.step*2)far++}}
+ if(!vals.length)return null;var n=vals.length,bins=SC2.map(function(b){return 0});vals.forEach(function(v){for(var k=SC2.length-1;k>=0;k--)if(v>=SC2[k][0]){bins[k]++;break}});
+ /* dark clusters */
+ var seen=[],cl=[];for(var j3=0;j3<H;j3++){seen[j3]=[]}
+ for(var j4=0;j4<H;j4++)for(var i4=0;i4<W;i4++){if(seen[j4][i4]||grid[j4][i4]==null||grid[j4][i4]>=S.dark)continue;var st=[[i4,j4]],cnt=0,sx=0,sy=0;seen[j4][i4]=1;while(st.length){var c=st.pop();cnt++;sx+=c[0];sy+=c[1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var a2=c[0]+d[0],b2=c[1]+d[1];if(a2<0||b2<0||a2>=W||b2>=H||seen[b2][a2]||grid[b2][a2]==null||grid[b2][a2]>=S.dark)return;seen[b2][a2]=1;st.push([a2,b2])})}
+  if(cnt*cell*cell>=150){var cx2=minx+(sx/cnt+.5)*cell,cy2=miny+(sy/cnt+.5)*cell;cl.push({area:cnt*cell*cell,lat:C.la0+cy2/FT,lng:C.lo0+cx2/(FT*C.cs)})}}
+ cl.sort(function(a,b){return b.area-a.area});
+ return{area:ar,n:n,min:mn,max:mx,avg:sum/n,dark:dk/n,far:far/n,bins:bins,cl:cl}}
+var SC2=[[0,"<0.2"],[.2,"0.2-0.5"],[.5,"0.5-1"],[1,"1-2"],[2,"2-5"],[5,"5+"]];
+function sqf(v){return Math.round(v).toLocaleString("en-US")+" sq ft ("+Math.round(v*.0929).toLocaleString("en-US")+" m&sup2;)"}
+function areaHtml(a,st){if(!st)return'<div class="mut">Add some readings first.</div>';
+ var h='<table><tr><th>Min</th><th>Average</th><th>Max</th><th>Avg : min</th></tr><tr><td><span class="chip" style="background:'+col(st.min)+";color:"+tx(col(st.min))+'">'+f1(st.min)+'</span></td><td><span class="chip" style="background:'+col(st.avg)+";color:"+tx(col(st.avg))+'">'+f1(st.avg)+'</span></td><td><span class="chip" style="background:'+col(st.max)+";color:"+tx(col(st.max))+'">'+f1(st.max)+"</span></td><td>"+(st.min>0?(st.avg/st.min).toFixed(1)+" : 1":"-")+"</td></tr></table>";
+ h+='<div class="mut" style="margin:6px 0">'+sqf(st.area)+"</div>";
+ var cols=["#2b0a5e","#3a37d6","#1f8ef1","#17c3d6","#22c36a","#e2e51c"];
+ h+='<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:4px 0">'+st.bins.map(function(b,i){return b?'<div style="width:'+(b/st.n*100)+'%;background:'+cols[i]+'" title="'+SC2[i][1]+' fc: '+Math.round(b/st.n*100)+'%"></div>':""}).join("")+"</div>";
+ h+='<div style="font-size:11.5px;color:var(--mut);display:flex;gap:8px;flex-wrap:wrap">'+st.bins.map(function(b,i){return b?'<span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:'+cols[i]+'"></i> '+SC2[i][1]+": "+Math.round(b/st.n*100)+"%</span>":""}).join("")+"</div>";
+ h+='<div class="row" style="margin-top:8px">Below '+S.dark+' fc: <b class="'+(st.dark>.05?"warn":"ok")+'">'+Math.round(st.dark*100)+"% of the area</b></div>";
+ if(st.cl.length)h+='<div class="mut">Dark spots: '+st.cl.slice(0,4).map(function(c){return Math.round(c.area).toLocaleString("en-US")+" sq ft"}).join(", ")+(st.cl.length>4?" and "+(st.cl.length-4)+" more":"")+" (marked on the map)</div>";
+ if(st.far>.25)h+='<div class="warn" style="margin-top:6px">'+Math.round(st.far*100)+"% of this area is more than "+2*S.step+" ft from any reading or working pole, so it is a rough guess there. Measure closer to improve it.</div>";
+ return h}
+function drawAreas(){gArea.clearLayers();S.areas.forEach(function(a){var s1=sel&&sel.t==="a"&&sel.id===a.id;var pl=L.polygon(a.pts,{color:s1?"#0a84ff":"#fff",weight:s1?3:2,dashArray:"6 6",fill:true,fillOpacity:0,interactive:tool==="move"}).addTo(gArea);pl.on("click",function(e){L.DomEvent.stopPropagation(e);select({t:"a",id:a.id})});
+  if(s1){var st=analyze(a);if(st)st.cl.forEach(function(c){L.circleMarker([c.lat,c.lng],{radius:12,color:"#ff3b30",weight:2,fillColor:"#ff3b30",fillOpacity:.25,interactive:false}).addTo(gArea)})}
+  L.marker(areaCenter(a),{interactive:false,icon:L.divIcon({className:"",html:'<span class="rl">'+esc(a.name)+"</span>",iconSize:[0,0]})}).addTo(gArea)})}
+function areaCenter(a){var la=0,lo=0;a.pts.forEach(function(p){la+=p[0];lo+=p[1]});return[la/a.pts.length,lo/a.pts.length]}
+function drawDraft(){gDraft.clearLayers();if(!draft.length)return;L.polyline(draft,{color:"#0a84ff",weight:3,dashArray:"5 5",interactive:false}).addTo(gDraft);draft.forEach(function(p,i){L.circleMarker(p,{radius:i?5:8,color:"#fff",weight:2,fillColor:"#0a84ff",fillOpacity:1,interactive:false}).addTo(gDraft)})}
+function finishArea(){if(draft.length<3){return}var a={id:S.nid++,name:"Area "+(S.areas.length+1),pts:draft.slice()};S.areas.push(a);draft=[];drawDraft();setTool("move");sel={t:"a",id:a.id};refresh(true)}
 /* panels */
 function legend(){var g="linear-gradient(90deg,"+ST.map(function(x,i){return col(x[0])+" "+(i/(ST.length-1)*100)+"%"}).join(",")+")";$("legend").innerHTML='<div><b>Foot-candles</b> <span class="mut">dark to bright</span><div style="width:300px;height:12px;border-radius:6px;margin:5px 0 2px;background:'+g+'"></div><div style="display:flex;justify-content:space-between;width:300px;font-size:11px;color:var(--mut)">'+ST.map(function(x){return"<span>"+x[0]+"</span>"}).join("")+"</div></div>"}
-function hint(){var t={move:"Drag poles and readings to move them. Click one to edit it.",pole:"Tap the map to put a light pole. Mark broken poles as Not working.",meas:"Tap where you stood, then type the number from the meter and press Enter."}[tool];$("hint").textContent=t}
-function setTool(t){tool=t;["move","pole","meas"].forEach(function(k){$("t_"+k).classList.toggle("on",k===t)});document.getElementById("map").classList.toggle("hand",t==="move");cleanup();hint();drawMarkers()}
+function hint(){var t={move:"Drag poles and readings to move them. Click one to edit it.",pole:"Tap the map to put a light pole. Mark broken poles as Not working.",meas:"Tap where you stood, then type the number from the meter and press Enter.",area:"Tap the corners of the area to check. Tap the first corner again or press Enter to finish."}[tool];$("hint").textContent=t}
+function setTool(t){tool=t;draft=[];["move","pole","meas","area"].forEach(function(k){$("t_"+k).classList.toggle("on",k===t)});document.getElementById("map").classList.toggle("hand",t==="move");cleanup();hint();drawMarkers()}
 function cleanup(){S.pts=S.pts.filter(function(p){return p.fc!=null||(sel&&sel.t==="m"&&sel.id===p.id)})}
 function select(s){sel=s;cleanup();refresh(true)}
 function selPanel(){var h="",b=$("selbox");
@@ -838,9 +875,11 @@ function selPanel(){var h="",b=$("selbox");
   '<div class="row"><label>From pole</label><select id="mp"><option value="">Nearest ('+(a?esc(a.pole.name):"none")+')</option>'+S.poles.map(function(q){return'<option value="'+q.id+'"'+(pt.pole===q.id?" selected":"")+">"+esc(q.name)+(q.on?"":" (off)")+"</option>"}).join("")+"</select></div>"+
   (a?'<div class="mut">Distance '+fm(a.d)+" &middot; ring "+(band(a.d)*S.step)+" ft"+(a.pole.on?"":' &middot; <span class="warn">pole is off, not used for rings</span>')+"</div>":'<div class="mut">Place a pole first.</div>')+
   '<div class="row"><label>Note</label><input id="mn" type="text" value="'+esc(pt.note||"")+'" style="width:180px"></div><div class="row"><button id="mdel" class="warn">Delete</button></div>'}}
+ if(sel&&sel.t==="a"){var ar0=areaById(sel.id);if(!ar0){sel=null}else{h='<h3>Area</h3><div class="row"><label>Name</label><input id="an" type="text" value="'+esc(ar0.name)+'" style="width:140px"></div>'+areaHtml(ar0,analyze(ar0))+'<div class="row" style="margin-top:8px"><button id="adel" class="warn">Delete area</button></div>'}}
  if(!sel&&!S.poles.length)h='<h3>Start</h3><div class="mut">1. Light pole tool: tap each pole. Or use Import planner file to bring the poles from your camera map.<br>2. Open a pole and mark it Working or Not working.<br>3. Reading tool: tap where you stood, type the number from the meter (fc button), Enter.<br>4. Rings, heat map and report build themselves.</div>';
  b.innerHTML=h;bindSel()}
 function bindSel(){var g=function(i){return $(i)};
+ if(sel&&sel.t==="a"){var ar1=areaById(sel.id);if(ar1){g("an").onchange=function(){ar1.name=this.value;refresh()};g("adel").onclick=function(){S.areas=S.areas.filter(function(x){return x!==ar1});sel=null;refresh(true)}}}
  if(sel&&sel.t==="p"){var p=poleById(sel.id);if(!p)return;g("pn").oninput=function(){p.name=this.value;drawMarkers();save()};g("pn").onchange=function(){refresh()};
   g("ptog").onclick=function(){p.on=!p.on;refresh(true)};g("ph").onchange=function(){p.h=+this.value||0;save()};g("pnote").onchange=function(){p.note=this.value;save()};
   g("pdel").onclick=function(){S.poles=S.poles.filter(function(x){return x!==p});S.pts.forEach(function(x){if(x.pole===p.id)x.pole=null});sel=null;refresh(true)}}
@@ -872,18 +911,20 @@ function repPanel(){var P=profiles(),h="",V=S.pts.filter(function(p){return p.fc
  var miss=[];S.poles.forEach(function(p){if(!p.on)return;var r=null;P.forEach(function(q){if(q.pole===p)r=q});if(!r)miss.push(esc(p.name)+": no readings yet");else{var k=r.max+1;miss.push(esc(p.name)+": next reading at "+k*S.step+" ft")}});
  if(miss.length)h+='<div style="margin-top:8px"><b>To measure next</b><br><span class="mut">'+miss.join("<br>")+"</span></div>";
  if(off&&P.length){var ap2=avgProfile(P);h+='<div style="margin-top:8px"><b>Not working</b><br><span class="mut">'+S.poles.filter(function(p){return!p.on}).map(function(p){var near=V.filter(function(x){var a=nearestPole(x);return a&&a.pole===p});return esc(p.name)+(near.length?": readings next to it average "+f1(avg(near.map(function(x){return x.fc})))+" fc":"")}).join("<br>")+"<br>If repaired it should give about "+ap2.slice(0,3).map(function(x){return f1(x.v)+" fc at "+x.k*S.step+" ft"}).join(", ")+" (turn on If repaired to see it on the map).</span></div>"}
+ if(S.areas.length&&V.length){h+="<h3 style=\"margin-top:14px\">Areas</h3><table><tr><th>Area</th><th>Avg</th><th>Min</th><th>Dark</th></tr>"+S.areas.map(function(a){var st=analyze(a);return st?"<tr><td>"+esc(a.name)+'</td><td><span class="chip" style="background:'+col(st.avg)+";color:"+tx(col(st.avg))+'">'+f1(st.avg)+'</span></td><td><span class="chip" style="background:'+col(st.min)+";color:"+tx(col(st.min))+'">'+f1(st.min)+"</span></td><td>"+Math.round(st.dark*100)+"%</td></tr>":""}).join("")+"</table>"}
  $("rep").innerHTML=h;var dk2=$("dk");if(dk2)dk2.onchange=function(){S.dark=+this.value||0;refresh()}}
 function drawAll(){var P=profiles();drawRings(P)}
-function refresh(full){drawMarkers();drawAll();clearTimeout(heatT);heatT=setTimeout(drawHeat,60);repPanel();if(full)selPanel();save()}
+function refresh(full){drawMarkers();drawAreas();drawAll();clearTimeout(heatT);heatT=setTimeout(drawHeat,60);repPanel();if(full)selPanel();save()}
 /* events */
 map.on("click",function(e){
+ if(tool==="area"){var f=draft[0];if(f&&draft.length>=3&&map.latLngToContainerPoint(f).distanceTo(map.latLngToContainerPoint(e.latlng))<16){finishArea();return}draft.push([e.latlng.lat,e.latlng.lng]);drawDraft();return}
  if(tool==="pole"){var n=S.poles.length+1;var p={id:S.nid++,lat:e.latlng.lat,lng:e.latlng.lng,name:"P"+n,on:true};S.poles.push(p);sel={t:"p",id:p.id};refresh(true);return}
  if(tool==="meas"){cleanup();var m={id:S.nid++,lat:e.latlng.lat,lng:e.latlng.lng,fc:null,pole:null};S.pts.push(m);sel={t:"m",id:m.id};refresh(true);return}
  sel=null;cleanup();refresh(true);var pv=probe(e.latlng);if(pv!=null)$("hint").textContent="Estimated light here: "+f1(pv)+" fc ("+f1(pv*10.764)+" lux)"});
-map.on("contextmenu",function(){setTool("move");sel=null;cleanup();refresh(true)});
-map.on("moveend",save);
-document.addEventListener("keydown",function(e){var t=e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;if((e.key==="Delete"||e.key==="Backspace")&&sel){var b=sel.t==="p"?$("pdel"):$("mdel");if(b){e.preventDefault();b.click()}}if(e.key==="Escape"){setTool("move");sel=null;refresh(true)}});
-["move","pole","meas"].forEach(function(k){$("t_"+k).onclick=function(){setTool(k)}});
+map.on("contextmenu",function(){draft=[];drawDraft();setTool("move");sel=null;cleanup();refresh(true)});
+map.on("moveend",save);map.on("dblclick",function(){});
+document.addEventListener("keydown",function(e){var t=e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;if((e.key==="Delete"||e.key==="Backspace")&&sel){var b=sel.t==="p"?$("pdel"):sel.t==="a"?$("adel"):$("mdel");if(b){e.preventDefault();b.click()}}if(e.key==="Enter"&&tool==="area"){finishArea()}if(e.key==="Escape"){draft=[];drawDraft();setTool("move");sel=null;refresh(true)}});
+["move","pole","meas","area"].forEach(function(k){$("t_"+k).onclick=function(){setTool(k)}});
 [["c_rings","rings"],["c_lab","lab"],["c_dist","dist"],["c_what","what"],["c_heat","heat"],["c_pts","pts"]].forEach(function(a){var el=$(a[0]);el.checked=!!S.show[a[1]];el.onchange=function(){S.show[a[1]]=this.checked?1:0;refresh()}});
 $("step").value=S.step;$("step").onchange=function(){S.step=Math.max(5,+this.value||30);refresh(true)};
 function find(){var v=$("q").value.trim();if(!v)return;var m=v.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);if(m){map.setView([+m[1],+m[2]],19);return}
