@@ -701,7 +701,7 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 .pole.off div{border-color:#ff3b30;background:#ffe3e1}.pole.sel div{box-shadow:0 0 0 4px var(--acc),0 2px 6px rgba(0,0,0,.45)}
 .pt{width:34px;height:34px;margin:-17px 0 0 -17px}.pt div{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}.pt.sel div{box-shadow:0 0 0 4px var(--acc),0 2px 6px rgba(0,0,0,.5)}
 .rl{background:rgba(20,20,22,.78);color:#fff;border-radius:9px;padding:1px 7px;font-size:11px;font-weight:600;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}.rl.est{opacity:.7;font-style:italic}.rl b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;border:1px solid rgba(255,255,255,.7)}
-.leaflet-container{cursor:crosshair}.hand .leaflet-container{cursor:grab}
+.leaflet-container{cursor:crosshair}.leaflet-image-layer.smooth{image-rendering:auto}.hand .leaflet-container{cursor:grab}
 @media(max-width:760px){#side{top:auto;height:46%;width:auto;left:10px}#legend{max-width:calc(100% - 20px);bottom:calc(46% + 20px)}#hint{max-width:90%;top:auto;bottom:calc(46% + 70px)}#rail{width:64px}#rail button span{display:none}}
 .leaflet-bottom.leaflet-right{margin-right:380px;margin-bottom:6px}
 @media(max-width:760px){.leaflet-bottom.leaflet-right{margin-right:0;margin-bottom:46%}}
@@ -723,10 +723,10 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <button id="t_pole"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M12 10.5V21M8 21h8"/></svg><span>Light pole</span></button>
 <button id="t_meas"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Reading</span></button>
 <hr>
-<label><input type="checkbox" id="c_rings" checked>Rings</label>
-<label><input type="checkbox" id="c_lab" checked>Labels</label>
+<label><input type="checkbox" id="c_rings">Rings</label>
+<label title="Ring numbers"><input type="checkbox" id="c_lab" checked>Ring labels</label>
 <label title="Estimate for broken poles, based on the working ones"><input type="checkbox" id="c_what">If repaired</label>
-<label><input type="checkbox" id="c_heat">Heat map</label>
+<label><input type="checkbox" id="c_heat" checked>Heat map</label>
 <label><input type="checkbox" id="c_pts" checked>Readings</label>
 <hr>
 <div style="font-size:12px;color:var(--mut);padding:0 4px">Ring step<br><input id="step" type="number" min="5" max="200" step="5" value="30" style="width:100%"></div>
@@ -744,9 +744,9 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <script>
 (function(){
 var KEY="lightsurvey1";
-var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:1,lab:1,what:0,heat:0,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
+var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:0,lab:1,what:0,heat:1,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
 try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k]}}catch(e){}
-if(S.ver!==2){S.ver=2;S.show.what=0}
+if(S.ver!==3){S.ver=3;S.show.what=0;S.show.heat=1;S.show.rings=0}
 var $=function(i){return document.getElementById(i)};
 var tool="move",sel=null;
 var FT=364567;
@@ -779,7 +779,7 @@ function avgProfile(P){var m={},c={};P.forEach(function(r){r.bands.forEach(funct
 /* draw */
 function circ(p,r){var a=[];for(var i=0;i<72;i++)a.push(dest(p,i*5,r));return a}
 function drawRings(P){gRing.clearLayers();gLab.clearLayers();if(!S.show.rings)return;
- function ring(p,bands,est){bands.slice().reverse().forEach(function(b){var o=circ(p,b.k*S.step),rings=[o];if(b.k>1)rings.push(circ(p,(b.k-1)*S.step));var c=col(b.v);L.polygon(rings,{interactive:false,color:c,weight:est?1.5:1,dashArray:est?"4 5":null,fillColor:c,fillOpacity:est?.22:.42,opacity:.9}).addTo(gRing)});
+ function ring(p,bands,est){bands.slice().reverse().forEach(function(b){var o=circ(p,b.k*S.step),rings=[o];if(b.k>1)rings.push(circ(p,(b.k-1)*S.step));var c=col(b.v);L.polygon(rings,{interactive:false,color:c,weight:est?1.5:2,dashArray:est?"4 5":null,fillColor:c,fillOpacity:0,opacity:.95}).addTo(gRing)});
   if(S.show.lab)bands.forEach(function(b){var pos=dest(p,(p._lb||0),(b.k-.5)*S.step);var h='<span class="rl'+((b.est||est)?" est":"")+'"><b style="background:'+col(b.v)+'"></b>'+(est?"~":"")+(b.k*S.step)+" ft "+f1(b.v)+"</span>";L.marker(pos,{interactive:false,icon:L.divIcon({className:"",html:h,iconSize:[0,0]})}).addTo(gLab)})}
  P.forEach(function(r){ring(r.pole,r.bands,0)});
  if(S.show.what&&P.length){var ap=avgProfile(P);S.poles.forEach(function(p){if(!p.on&&ap.length){var pp={lat:p.lat,lng:p.lng,_lb:0};ring(pp,ap,1)}})}}
@@ -794,19 +794,30 @@ function drawMarkers(){gPol.clearLayers();gPts.clearLayers();
   m.on("dragend",function(){var ll=m.getLatLng();pt.lat=ll.lat;pt.lng=ll.lng;refresh()})})}
 /* heat map */
 var heatOv=null,heatT=null;
-function drawHeat(){gHeat.clearLayers();heatOv=null;if(!S.show.heat)return;var V=S.pts.filter(function(p){return p.fc!=null});if(V.length<2)return;
- var la0=0,lo0=0;V.forEach(function(p){la0+=p.lat;lo0+=p.lng});la0/=V.length;lo0/=V.length;var cs=Math.cos(la0*Math.PI/180);
- var X=V.map(function(p){return{x:(p.lng-lo0)*FT*cs,y:(p.lat-la0)*FT,v:p.fc}});
- var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;X.forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)});
- var pad=S.step*1.2;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var cell=Math.max(4,Math.max(maxx-minx,maxy-miny)/140),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell);
+function fieldCtx(){var V=S.pts.filter(function(p){return p.fc!=null});var P=profiles();var cs=Math.cos(S.v.lat*Math.PI/180);
+ var la0=S.v.lat,lo0=S.v.lng;if(V.length){la0=0;lo0=0;V.forEach(function(p){la0+=p.lat;lo0+=p.lng});la0/=V.length;lo0/=V.length;cs=Math.cos(la0*Math.PI/180)}
+ var tf=function(p){return{x:(p.lng-lo0)*FT*cs,y:(p.lat-la0)*FT}};
+ var X=V.map(function(p){var q=tf(p);q.v=p.fc;return q});
+ var PR=P.map(function(r){var q=tf(r.pole),pts=r.bands.map(function(b){return[(b.k-.5)*S.step,b.v]});return{x:q.x,y:q.y,pts:pts}});
+ var WP=S.poles.filter(function(p){return p.on}).map(tf);
+ function prof(pr,d){var a=pr.pts;if(d<=a[0][0])return a[0][1];for(var i=1;i<a.length;i++)if(d<=a[i][0]){var t=(d-a[i-1][0])/(a[i][0]-a[i-1][0]);return a[i-1][1]+(a[i][1]-a[i-1][1])*t}var l=a[a.length-1];return l[1]*Math.exp(-(d-l[0])/(S.step*1.5))}
+ function at(x,y){var sw=0,sv=0,nd=1e9;for(var k=0;k<X.length;k++){var dx=x-X[k].x,dy=y-X[k].y,d2=dx*dx+dy*dy+4;if(d2<nd)nd=d2;var w=1/(d2*d2);sw+=w;sv+=w*X[k].v}
+  var idw=X.length?sv/sw:0;nd=Math.sqrt(nd);var pr=0;PR.forEach(function(q){var d=Math.sqrt((x-q.x)*(x-q.x)+(y-q.y)*(y-q.y));var v=prof(q,d);if(v>pr)pr=v});
+  var v=idw;if(PR.length){var w=Math.exp(-Math.pow(nd/(S.step*.8),2));v=w*idw+(1-w)*pr}
+  var np=1e9;WP.forEach(function(q){var d=Math.sqrt((x-q.x)*(x-q.x)+(y-q.y)*(y-q.y));if(d<np)np=d});var n2=Math.min(nd,np===1e9?1e9:np*1.0);
+  return{v:v,nd:Math.min(nd,np)}}
+ return{V:V,X:X,at:at,la0:la0,lo0:lo0,cs:cs,tf:tf,WP:WP}}
+function drawHeat(){gHeat.clearLayers();heatOv=null;if(!S.show.heat)return;var C=fieldCtx();if(C.X.length<1)return;
+ var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;C.X.concat(S.poles.map(C.tf)).forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)});
+ var pad=S.step*2.4;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var cell=Math.max(3,Math.max(maxx-minx,maxy-miny)/170),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell);
  var cv=document.createElement("canvas");cv.width=W;cv.height=H;var cx=cv.getContext("2d"),im=cx.createImageData(W,H);
- for(var j=0;j<H;j++)for(var i=0;i<W;i++){var x=minx+(i+.5)*cell,y=maxy-(j+.5)*cell,sw=0,sv=0,nd=1e9;
-  for(var k=0;k<X.length;k++){var dx=x-X[k].x,dy=y-X[k].y,d2=dx*dx+dy*dy+1;if(d2<nd)nd=d2;var w=1/(d2*d2);sw+=w;sv+=w*X[k].v}
-  var o=(j*W+i)*4;if(Math.sqrt(nd)>S.step*1.6){im.data[o+3]=0;continue}
-  var v=sv/sw,c=col(v);im.data[o]=parseInt(c.substr(1,2),16);im.data[o+1]=parseInt(c.substr(3,2),16);im.data[o+2]=parseInt(c.substr(5,2),16);im.data[o+3]=150}
- cx.putImageData(im,0,0);
- var sw1=[miny+0,minx],sw2=[maxy,maxx];var b=[[la0+miny/FT,lo0+minx/(FT*cs)],[la0+maxy/FT,lo0+maxx/(FT*cs)]];
- heatOv=L.imageOverlay(cv.toDataURL(),b,{opacity:1,interactive:false}).addTo(gHeat)}
+ for(var j=0;j<H;j++)for(var i=0;i<W;i++){var x=minx+(i+.5)*cell,y=maxy-(j+.5)*cell,r=C.at(x,y),o=(j*W+i)*4;
+  var a=Math.max(0,Math.min(1,(S.step*2.2-r.nd)/(S.step*1.1)));if(a<=0){im.data[o+3]=0;continue}
+  var c=hx(col(r.v));im.data[o]=c[0];im.data[o+1]=c[1];im.data[o+2]=c[2];im.data[o+3]=Math.round(a*165)}
+ cx.putImageData(im,0,0);var cs=C.cs,la0=C.la0,lo0=C.lo0;
+ var b=[[la0+miny/FT,lo0+minx/(FT*cs)],[la0+maxy/FT,lo0+maxx/(FT*cs)]];
+ heatOv=L.imageOverlay(cv.toDataURL(),b,{opacity:1,interactive:false,className:"smooth"}).addTo(gHeat)}
+function probe(ll){var C=fieldCtx();if(!C.X.length)return null;var q=C.tf({lat:ll.lat,lng:ll.lng});return C.at(q.x,q.y).v}
 /* panels */
 function legend(){var g="linear-gradient(90deg,"+ST.map(function(x,i){return col(x[0])+" "+(i/(ST.length-1)*100)+"%"}).join(",")+")";$("legend").innerHTML='<div><b>Foot-candles</b> <span class="mut">dark to bright</span><div style="width:300px;height:12px;border-radius:6px;margin:5px 0 2px;background:'+g+'"></div><div style="display:flex;justify-content:space-between;width:300px;font-size:11px;color:var(--mut)">'+ST.map(function(x){return"<span>"+x[0]+"</span>"}).join("")+"</div></div>"}
 function hint(){var t={move:"Drag poles and readings to move them. Click one to edit it.",pole:"Tap the map to put a light pole. Mark broken poles as Not working.",meas:"Tap where you stood, then type the number from the meter and press Enter."}[tool];$("hint").textContent=t}
@@ -867,7 +878,7 @@ function refresh(full){drawMarkers();drawAll();clearTimeout(heatT);heatT=setTime
 map.on("click",function(e){
  if(tool==="pole"){var n=S.poles.length+1;var p={id:S.nid++,lat:e.latlng.lat,lng:e.latlng.lng,name:"P"+n,on:true};S.poles.push(p);sel={t:"p",id:p.id};refresh(true);return}
  if(tool==="meas"){cleanup();var m={id:S.nid++,lat:e.latlng.lat,lng:e.latlng.lng,fc:null,pole:null};S.pts.push(m);sel={t:"m",id:m.id};refresh(true);return}
- sel=null;cleanup();refresh(true)});
+ sel=null;cleanup();refresh(true);var pv=probe(e.latlng);if(pv!=null)$("hint").textContent="Estimated light here: "+f1(pv)+" fc ("+f1(pv*10.764)+" lux)"});
 map.on("contextmenu",function(){setTool("move");sel=null;cleanup();refresh(true)});
 map.on("moveend",save);
 document.addEventListener("keydown",function(e){var t=e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;if((e.key==="Delete"||e.key==="Backspace")&&sel){var b=sel.t==="p"?$("pdel"):$("mdel");if(b){e.preventDefault();b.click()}}if(e.key==="Escape"){setTool("move");sel=null;refresh(true)}});
