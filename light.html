@@ -724,7 +724,8 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <button id="t_meas"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Reading</span></button>
 <hr>
 <label><input type="checkbox" id="c_rings">Rings</label>
-<label title="Ring numbers"><input type="checkbox" id="c_lab" checked>Ring labels</label>
+<label title="Numbers on the rings"><input type="checkbox" id="c_lab">Ring numbers</label>
+<label title="Show the distance in feet in front of each number"><input type="checkbox" id="c_dist">Distances</label>
 <label title="Estimate for broken poles, based on the working ones"><input type="checkbox" id="c_what">If repaired</label>
 <label><input type="checkbox" id="c_heat" checked>Heat map</label>
 <label><input type="checkbox" id="c_pts" checked>Readings</label>
@@ -744,9 +745,9 @@ th{font-weight:600;color:var(--mut);text-align:left;padding:4px 6px;border-botto
 <script>
 (function(){
 var KEY="lightsurvey1";
-var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:0,lab:1,what:0,heat:1,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
+var S={poles:[],pts:[],nid:1,step:30,dark:0.5,show:{rings:0,lab:0,dist:0,what:0,heat:1,pts:1},v:{lat:41.76,lng:-88.32,z:17}};
 try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k]}}catch(e){}
-if(S.ver!==3){S.ver=3;S.show.what=0;S.show.heat=1;S.show.rings=0}
+if(S.ver!==4){S.ver=4;S.show.what=0;S.show.heat=1;S.show.rings=0;S.show.lab=0;S.show.dist=0}
 var $=function(i){return document.getElementById(i)};
 var tool="move",sel=null;
 var FT=364567;
@@ -778,9 +779,9 @@ function avg(a){var s=0;a.forEach(function(v){s+=v});return s/a.length}
 function avgProfile(P){var m={},c={};P.forEach(function(r){r.bands.forEach(function(b){m[b.k]=(m[b.k]||0)+b.v;c[b.k]=(c[b.k]||0)+1})});var o=[];Object.keys(m).map(Number).sort(function(a,b){return a-b}).forEach(function(k){o.push({k:k,v:m[k]/c[k],est:1,n:0})});return o}
 /* draw */
 function circ(p,r){var a=[];for(var i=0;i<72;i++)a.push(dest(p,i*5,r));return a}
-function drawRings(P){gRing.clearLayers();gLab.clearLayers();if(!S.show.rings)return;
- function ring(p,bands,est){bands.slice().reverse().forEach(function(b){var o=circ(p,b.k*S.step),rings=[o];if(b.k>1)rings.push(circ(p,(b.k-1)*S.step));var c=col(b.v);L.polygon(rings,{interactive:false,color:c,weight:est?1.5:2,dashArray:est?"4 5":null,fillColor:c,fillOpacity:0,opacity:.95}).addTo(gRing)});
-  if(S.show.lab)bands.forEach(function(b){var pos=dest(p,(p._lb||0),(b.k-.5)*S.step);var h='<span class="rl'+((b.est||est)?" est":"")+'"><b style="background:'+col(b.v)+'"></b>'+(est?"~":"")+(b.k*S.step)+" ft "+f1(b.v)+"</span>";L.marker(pos,{interactive:false,icon:L.divIcon({className:"",html:h,iconSize:[0,0]})}).addTo(gLab)})}
+function drawRings(P){gRing.clearLayers();gLab.clearLayers();if(!S.show.rings&&!S.show.lab)return;
+ function ring(p,bands,est){if(S.show.rings)bands.slice().reverse().forEach(function(b){var o=circ(p,b.k*S.step),rings=[o];if(b.k>1)rings.push(circ(p,(b.k-1)*S.step));var c=col(b.v);L.polygon(rings,{interactive:false,color:c,weight:est?1.5:2,dashArray:est?"4 5":null,fillColor:c,fillOpacity:0,opacity:.95}).addTo(gRing)});
+  if(S.show.lab)bands.forEach(function(b){var pos=dest(p,(p._lb||0),(b.k-.5)*S.step);var h='<span class="rl'+((b.est||est)?" est":"")+'"><b style="background:'+col(b.v)+'"></b>'+(est?"~":"")+(S.show.dist?(b.k*S.step)+" ft ":"")+f1(b.v)+"</span>";L.marker(pos,{interactive:false,icon:L.divIcon({className:"",html:h,iconSize:[0,0]})}).addTo(gLab)})}
  P.forEach(function(r){ring(r.pole,r.bands,0)});
  if(S.show.what&&P.length){var ap=avgProfile(P);S.poles.forEach(function(p){if(!p.on&&ap.length){var pp={lat:p.lat,lng:p.lng,_lb:0};ring(pp,ap,1)}})}}
 function pIcon(p){var i=S.poles.indexOf(p)+1;return L.divIcon({className:"",html:'<div class="pole'+(p.on?"":" off")+(sel&&sel.t==="p"&&sel.id===p.id?" sel":"")+'"><div>'+esc(p.name||("P"+i))+"</div></div>",iconSize:[0,0]})}
@@ -883,7 +884,7 @@ map.on("contextmenu",function(){setTool("move");sel=null;cleanup();refresh(true)
 map.on("moveend",save);
 document.addEventListener("keydown",function(e){var t=e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;if((e.key==="Delete"||e.key==="Backspace")&&sel){var b=sel.t==="p"?$("pdel"):$("mdel");if(b){e.preventDefault();b.click()}}if(e.key==="Escape"){setTool("move");sel=null;refresh(true)}});
 ["move","pole","meas"].forEach(function(k){$("t_"+k).onclick=function(){setTool(k)}});
-[["c_rings","rings"],["c_lab","lab"],["c_what","what"],["c_heat","heat"],["c_pts","pts"]].forEach(function(a){var el=$(a[0]);el.checked=!!S.show[a[1]];el.onchange=function(){S.show[a[1]]=this.checked?1:0;refresh()}});
+[["c_rings","rings"],["c_lab","lab"],["c_dist","dist"],["c_what","what"],["c_heat","heat"],["c_pts","pts"]].forEach(function(a){var el=$(a[0]);el.checked=!!S.show[a[1]];el.onchange=function(){S.show[a[1]]=this.checked?1:0;refresh()}});
 $("step").value=S.step;$("step").onchange=function(){S.step=Math.max(5,+this.value||30);refresh(true)};
 function find(){var v=$("q").value.trim();if(!v)return;var m=v.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);if(m){map.setView([+m[1],+m[2]],19);return}
  var q=encodeURIComponent(v);function j(u){return fetch(u).then(function(r){if(!r.ok)throw 0;return r.json()})}
