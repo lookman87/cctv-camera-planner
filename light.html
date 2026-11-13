@@ -803,17 +803,17 @@ function fieldCtx(){var V=S.pts.filter(function(p){return p.fc!=null});var P=pro
  function prof(pr,d){var a=pr.pts;if(d<=a[0][0])return a[0][1];for(var i=1;i<a.length;i++)if(d<=a[i][0]){var t=(d-a[i-1][0])/(a[i][0]-a[i-1][0]);return a[i-1][1]+(a[i][1]-a[i-1][1])*t}var l=a[a.length-1];return l[1]*Math.exp(-(d-l[0])/(S.step*1.5))}
  function at(x,y){var sw=0,sv=0,nd=1e9;for(var k=0;k<X.length;k++){var dx=x-X[k].x,dy=y-X[k].y,d2=dx*dx+dy*dy+4;if(d2<nd)nd=d2;var w=1/(d2*d2);sw+=w;sv+=w*X[k].v}
   var idw=X.length?sv/sw:0;nd=Math.sqrt(nd);var pr=0;PR.forEach(function(q){var d=Math.sqrt((x-q.x)*(x-q.x)+(y-q.y)*(y-q.y));var v=prof(q,d);if(v>pr)pr=v});
-  var v=idw;if(PR.length){var w=Math.exp(-Math.pow(nd/(S.step*.8),2));v=w*idw+(1-w)*pr}
+  var v=idw;if(PR.length){var w=Math.exp(-Math.pow(nd/(S.step*.8),2));v=w*idw+(1-w)*pr}var ins=-1e9;PR.forEach(function(q){var d=Math.sqrt((x-q.x)*(x-q.x)+(y-q.y)*(y-q.y));var R=q.pts[q.pts.length-1][0]+S.step*.5;if(R-d>ins)ins=R-d});if(PR.length&&ins>0){var t=Math.min(1,ins/(S.step*.6));v=t*pr+(1-t)*v}
   var np=1e9;WP.forEach(function(q){var d=Math.sqrt((x-q.x)*(x-q.x)+(y-q.y)*(y-q.y));if(d<np)np=d});var n2=Math.min(nd,np===1e9?1e9:np*1.0);
-  return{v:v,nd:Math.min(nd,np)}}
+  return{v:v,nd:Math.min(nd,np),ins:ins}}
  return{V:V,X:X,at:at,la0:la0,lo0:lo0,cs:cs,tf:tf,WP:WP}}
 function drawHeat(){gHeat.clearLayers();heatOv=null;if(!S.show.heat)return;var C=fieldCtx();if(C.X.length<1)return;
  var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;C.X.concat(S.poles.map(C.tf)).forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)});
- var pad=S.step*2.4;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var cell=Math.max(3,Math.max(maxx-minx,maxy-miny)/170),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell);
+ profiles().forEach(function(r){var q=C.tf(r.pole),R=(r.max+1.5)*S.step;minx=Math.min(minx,q.x-R);maxx=Math.max(maxx,q.x+R);miny=Math.min(miny,q.y-R);maxy=Math.max(maxy,q.y+R)});var pad=S.step*1.2;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var cell=Math.max(3,Math.max(maxx-minx,maxy-miny)/170),W=Math.ceil((maxx-minx)/cell),H=Math.ceil((maxy-miny)/cell);
  var cv=document.createElement("canvas");cv.width=W;cv.height=H;var cx=cv.getContext("2d"),im=cx.createImageData(W,H);
  for(var j=0;j<H;j++)for(var i=0;i<W;i++){var x=minx+(i+.5)*cell,y=maxy-(j+.5)*cell,r=C.at(x,y),o=(j*W+i)*4;
-  var a=Math.max(0,Math.min(1,(S.step*2.2-r.nd)/(S.step*1.1)));if(a<=0){im.data[o+3]=0;continue}
-  var c=hx(col(r.v));im.data[o]=c[0];im.data[o+1]=c[1];im.data[o+2]=c[2];im.data[o+3]=Math.round(a*165)}
+  var a=Math.max(0,Math.min(1,(S.step*2.2-r.nd)/(S.step*1.1)));if(r.ins>0)a=Math.max(a,Math.min(1,r.ins/(S.step*.8)));if(a<=0){im.data[o+3]=0;continue}
+  var c=hx(col(r.v));im.data[o]=c[0];im.data[o+1]=c[1];im.data[o+2]=c[2];im.data[o+3]=Math.round(a*105)}
  cx.putImageData(im,0,0);var cs=C.cs,la0=C.la0,lo0=C.lo0;
  var b=[[la0+miny/FT,lo0+minx/(FT*cs)],[la0+maxy/FT,lo0+maxx/(FT*cs)]];
  heatOv=L.imageOverlay(cv.toDataURL(),b,{opacity:1,interactive:false,className:"smooth"}).addTo(gHeat)}
