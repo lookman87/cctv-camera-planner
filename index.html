@@ -935,7 +935,7 @@ document.getElementById("psum").innerHTML=document.getElementById("info").innerH
 document.getElementById("pdate").textContent=(mode==="plan"?"Floor plan, ":"Camera pole plan, ")+new Date().toLocaleString();
 if(window.rptHead)window.rptHead();var f1=Math.min(990/sw,2.5);setPf(f1);
 document.body.classList.add("printing");
-setTimeout(function(){var ph=document.getElementById("psum").offsetHeight;setPf(Math.min(f1,Math.max(.2,(735-ph)/sh)));for(var it=0;it<3;it++){ph=document.getElementById("psum").offsetHeight;setPf(Math.min(f1,Math.max(.2,(700-ph)/sh)))}
+setTimeout(function(){setPf(Math.min(f1,Math.max(.2,700/sh)));
 map.invalidateSize(false);map.setView(pc||pv.c,pv.z,{animate:false});
 var fired=false;function go(){if(fired)return;fired=true;window.print()}
 if(mode==="plan"){setTimeout(go,800);return}
@@ -1847,30 +1847,46 @@ body.printing #psum select{border:0!important;background:transparent!important;a
 b.addEventListener("click",function(){try{clearSel();sel=null;multi=false;pasting=false;if(typeof areaOff==="function")areaOff();var sb=document.getElementById("szbar");if(sb)sb.classList.remove("on");refresh()}catch(e){}},true)})();
 </script>
 <style id="cmpcss">
-body.printing #psum .cmpw p{margin:0 0 5px;font-size:12px;line-height:1.5;font-weight:400}
-body.printing #psum .cmpw p b{font-weight:700}
+body.printing #psum{break-before:page;page-break-before:always;width:auto!important;max-width:none!important;border:0!important;padding:6px 10px!important;font-size:14px!important;margin-top:0!important}
+body.printing #psum .cmpw h2{font-size:20px;margin:0 0 4px;font-weight:700}
+body.printing #psum .cmpw .sub{font-size:12px;color:#5b6470;margin:0 0 14px}
+body.printing #psum .cmpw h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#5b6470;margin:16px 0 6px;font-weight:700;border-bottom:1.5px solid #14171c;padding-bottom:3px}
+body.printing #psum .cmpw ul{margin:0 0 6px;padding:0;list-style:none}
+body.printing #psum .cmpw li{margin:0;padding:3px 0;font-size:14px;line-height:1.4;border-bottom:1px solid #e9ecf0}
+body.printing #psum .cmpw li.tot{font-weight:700;border-bottom:0}
+body.printing #psum .cmpw li.warn{color:#c92a2a;font-weight:700}
 </style>
 <script>
 (function(){
 var ps=document.getElementById("psum");if(!ps)return;
 function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
 function tx(el){return(el.textContent||"").replace(/\s+/g," ").trim()}
+function li(t,c){return'<li'+(c?' class="'+c+'"':'')+'>'+esc(t)+'</li>'}
 function compact(){if(ps.firstElementChild&&ps.firstElementChild.classList.contains("cmpw"))return;
-var lens=!!(window.rs&&rs.labels),out=[];
+var lens=!!(window.rs&&rs.labels),eq=[],cab=[],len=[];
 Array.prototype.forEach.call(ps.querySelectorAll(".camlist"),function(g){
- if(g.closest(".wsum")){if(!lens){return}
-  var inp=g.querySelector("input");var t=tx(g);if(inp)t=t.replace(/spare per run\s*ft\)/,"spare per run "+inp.value+" ft)");out.push("<p>"+esc(t)+"</p>");return}
- var cls=Array.prototype.map.call(g.querySelectorAll(":scope>.cl"),tx),tb=g.querySelector("table");
- if(!tb){if(cls.length)out.push("<p>"+esc(cls[0])+(cls.length>1?": "+esc(cls.slice(1).join("; ")):"")+"</p>");return}
- var rows=Array.prototype.slice.call(tb.querySelectorAll("tr")),hd=Array.prototype.map.call(rows[0].children,tx),parts=[],tot="";
+ var kids=Array.prototype.slice.call(g.children),tb=g.querySelector("table");
+ var txt=tx(g);
+ if(/Cable with spare/i.test(txt)){if(!lens)return;var inp=g.querySelector("input"),h=kids[0]?tx(kids[0]):"";if(inp)h=h.replace(/spare per run\s*ft\)/,"spare per run "+inp.value+" ft)");len.push(li(h,"tot"));kids.slice(1).forEach(function(k){len.push(li(tx(k)))});return}
+ if(!tb){var lines=[];kids.forEach(function(k,i){var t=tx(k);if(!t)return;
+   if(/^\d+\s/.test(t)||/^\d+ ×/.test(t)||i>0||g.closest(".wsum")){lines.push(t)}else lines.push(t)});
+   var hd=lines[0]||"";
+   if(g.closest(".wsum")&&lines.length>1&&!/^\d/.test(hd)){eq.push('<li class="tot">'+esc(hd)+'</li>');lines.slice(1).forEach(function(t){eq.push(li(t.replace(/^(\d+)\s*×\s*/,"$1 × ")))})}
+   else lines.forEach(function(t){eq.push(li(t.replace(/^(\d+)\s*×\s*/,"$1 × ")))});return}
+ var rows=Array.prototype.slice.call(tb.querySelectorAll("tr")),hd2=Array.prototype.map.call(rows[0].children,tx),head=kids[0]?tx(kids[0]):"";
+ var short=head.replace(/\s*\(fiber from each IDF[^)]*\)/,"").replace(/\s*·.*$/,"");eq.push(li(short));
+ var sec=[],tot="";
  rows.slice(1).forEach(function(r){var c=Array.prototype.map.call(r.children,tx);
-  if(r.classList.contains("tt")){var n=[];c.forEach(function(v,i){if(i===0||!v)return;var isL=/ft|m\)/.test(v)&&/total|longest|length/i.test(hd[i]||"");if(isL&&!lens)return;n.push(v+" "+(isL?"":(hd[i]||"")))});tot=c[0]+": "+n.join(", ");return}
-  var q=[],note="";c.forEach(function(v,i){if(i===0||!v||v==="-")return;var h=(hd[i]||"");if(!h){note=v;return}
+  if(r.classList.contains("tt")){var n=[];c.forEach(function(v,i){if(i===0||!v)return;var isL=/ft|m\)/.test(v)&&/total|longest|length/i.test(hd2[i]||"");if(isL&&!lens)return;n.push(v+(isL?"":" "+(hd2[i]||"")))});tot=c[0]+": "+n.join(", ");return}
+  var q=[],note="";c.forEach(function(v,i){if(i===0||!v||v==="-")return;var h=hd2[i]||"";if(!h){note=v;return}
    if(/total|longest|length/i.test(h)){if(lens)q.push(h.toLowerCase()+" "+v)}else q.push(v+" "+h)});
-  parts.push(c[0]+(q.length?" ("+q.join(", ")+")":"")+(note?" - "+note:""))});
- var head=cls[0]||"";if(!lens)head=head.replace(/\s*\(fiber from each IDF[^)]*\)/,"");
- out.push("<p>"+esc(head)+". "+esc(parts.join("; "))+(tot?". <b>"+esc(tot)+"</b>":"")+"</p>")});
-var w=document.createElement("div");w.className="cmpw";w.innerHTML=out.join("");ps.innerHTML="";ps.appendChild(w)}
+  sec.push(li(c[0]+(q.length?": "+q.join(", "):"")+(note?"  -  "+note:""),note?"warn":""))});
+ if(tot)sec.push(li(tot,"tot"));
+ cab.push('<h3>'+esc(head.replace(/\s*·.*$/,"").replace(/\s*\(fiber from each IDF[^)]*\)/,""))+'</h3><ul>'+sec.join("")+'</ul>'+(/IDF/.test(head)&&/Cat6/.test(head)?'<p class="sub">'+esc(head.replace(/^.*·\s*/,""))+'</p>':''))});
+var date=(document.getElementById("pdate")||{}).textContent||"";
+var w=document.createElement("div");w.className="cmpw";
+w.innerHTML='<h2>Equipment list</h2><p class="sub">'+esc(date)+'</p><ul>'+eq.join("")+'</ul>'+cab.join("")+(len.length?'<h3>Cable with spare</h3><ul>'+len.join("")+'</ul>':'');
+ps.innerHTML="";ps.appendChild(w)}
 new MutationObserver(function(){compact()}).observe(ps,{childList:true});
 })();
 </script>
