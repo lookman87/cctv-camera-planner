@@ -1842,5 +1842,33 @@ body.printing #psum select{border:0!important;background:transparent!important;a
 (function(){var b=document.getElementById("pdf");if(!b)return;
 b.addEventListener("click",function(){try{clearSel();sel=null;multi=false;pasting=false;if(typeof areaOff==="function")areaOff();var sb=document.getElementById("szbar");if(sb)sb.classList.remove("on");refresh()}catch(e){}},true)})();
 </script>
+<style id="cmpcss">
+body.printing #psum .cmpw p{margin:0 0 5px;font-size:12px;line-height:1.5;font-weight:400}
+body.printing #psum .cmpw p b{font-weight:700}
+</style>
+<script>
+(function(){
+var ps=document.getElementById("psum");if(!ps)return;
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function tx(el){return(el.textContent||"").replace(/\s+/g," ").trim()}
+function compact(){if(ps.firstElementChild&&ps.firstElementChild.classList.contains("cmpw"))return;
+var lens=!!(window.rs&&rs.labels),out=[];
+Array.prototype.forEach.call(ps.querySelectorAll(".camlist"),function(g){
+ if(g.closest(".wsum")){if(!lens){return}
+  var inp=g.querySelector("input");var t=tx(g);if(inp)t=t.replace(/spare per run\s*ft\)/,"spare per run "+inp.value+" ft)");out.push("<p>"+esc(t)+"</p>");return}
+ var cls=Array.prototype.map.call(g.querySelectorAll(":scope>.cl"),tx),tb=g.querySelector("table");
+ if(!tb){if(cls.length)out.push("<p>"+esc(cls[0])+(cls.length>1?": "+esc(cls.slice(1).join("; ")):"")+"</p>");return}
+ var rows=Array.prototype.slice.call(tb.querySelectorAll("tr")),hd=Array.prototype.map.call(rows[0].children,tx),parts=[],tot="";
+ rows.slice(1).forEach(function(r){var c=Array.prototype.map.call(r.children,tx);
+  if(r.classList.contains("tt")){var n=[];c.forEach(function(v,i){if(i===0||!v)return;var isL=/ft|m\)/.test(v)&&/total|longest|length/i.test(hd[i]||"");if(isL&&!lens)return;n.push(v+" "+(isL?"":(hd[i]||"")))});tot=c[0]+": "+n.join(", ");return}
+  var q=[],note="";c.forEach(function(v,i){if(i===0||!v||v==="-")return;var h=(hd[i]||"");if(!h){note=v;return}
+   if(/total|longest|length/i.test(h)){if(lens)q.push(h.toLowerCase()+" "+v)}else q.push(v+" "+h)});
+  parts.push(c[0]+(q.length?" ("+q.join(", ")+")":"")+(note?" - "+note:""))});
+ var head=cls[0]||"";if(!lens)head=head.replace(/\s*\(fiber from each IDF[^)]*\)/,"");
+ out.push("<p>"+esc(head)+". "+esc(parts.join("; "))+(tot?". <b>"+esc(tot)+"</b>":"")+"</p>")});
+var w=document.createElement("div");w.className="cmpw";w.innerHTML=out.join("");ps.innerHTML="";ps.appendChild(w)}
+new MutationObserver(function(){compact()}).observe(ps,{childList:true});
+})();
+</script>
 </body></html>
 
