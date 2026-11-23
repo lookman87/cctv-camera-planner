@@ -1691,5 +1691,65 @@ tnl:'<circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M6.8 1
 Object.keys(P).forEach(function(id){var b=document.getElementById(id);if(!b)return;var o=b.querySelector("svg");var s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("class","ic");s.setAttribute("viewBox","0 0 24 24");s.setAttribute("width","26");s.setAttribute("height","26");s.setAttribute("fill","none");s.setAttribute("stroke","currentColor");s.setAttribute("stroke-width","1.6");s.setAttribute("stroke-linecap","round");s.setAttribute("stroke-linejoin","round");s.innerHTML=P[id];if(o)b.replaceChild(s,o);else b.insertBefore(s,b.firstChild)});
 })();
 </script>
+<style id="homecss">
+#home{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,12,18,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+#home.on{display:flex}
+#home .hb{width:min(920px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--card,#fff);color:var(--fg,#111);border:1px solid var(--bd,rgba(0,0,0,.1));border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.35);padding:22px 24px}
+#home h2{margin:0 0 14px;font-size:20px;font-weight:700}
+#home h3{margin:22px 0 10px;font-size:15px;font-weight:700}
+#home .hx{float:right;border:0;background:var(--fill,rgba(120,120,128,.14));color:inherit;border-radius:8px;padding:6px 12px;cursor:pointer;font:600 13px inherit}
+#home .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+#home .hc{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--bd,rgba(0,0,0,.1));background:var(--fill,rgba(120,120,128,.1));color:inherit;border-radius:14px;padding:16px;cursor:pointer;font:inherit}
+#home .hc:hover{border-color:var(--acc,#007aff);box-shadow:0 0 0 2px var(--acc,#007aff) inset}
+#home .hc .ic2{width:42px;height:42px;border-radius:11px;background:rgba(0,122,255,.14);color:var(--acc,#007aff);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+#home .hc b{font-size:15px}#home .hc span{font-size:12px;opacity:.7;line-height:1.35}
+#home .sz{display:flex;gap:6px;align-items:center;font-size:12px;margin-top:4px}
+#home .sz input{width:64px;padding:4px 6px;border-radius:7px;border:1px solid var(--bd,rgba(0,0,0,.15));background:var(--card,#fff);color:inherit}
+#home .rec{display:flex;flex-direction:column;gap:6px}
+#home .rr{display:flex;align-items:center;gap:10px;border:1px solid var(--bd,rgba(0,0,0,.1));border-radius:11px;padding:9px 12px;cursor:pointer;background:transparent;color:inherit;font:inherit;text-align:left}
+#home .rr:hover{background:var(--fill,rgba(120,120,128,.12))}
+#home .rr em{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(0,122,255,.14);color:var(--acc,#007aff)}
+#home .rr small{margin-left:auto;opacity:.6;font-size:11px}
+#homebtn{font-weight:600}
+</style>
+<div id="home"><div class="hb"><button class="hx" id="homex">Continue current</button><h2>New project</h2>
+<div class="cards">
+<button class="hc" id="hcplan"><div class="ic2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg></div><b>Upload floor plan</b><span>Your own drawing as the background. PDF, JPG or PNG. After loading you set the scale with two points.</span></button>
+<button class="hc" id="hcmap"><div class="ic2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></div><b>Satellite map</b><span>Start on the satellite image. Find the site by address or coordinates.</span></button>
+<div class="hc" id="hcblank" role="button" tabindex="0"><div class="ic2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/></svg></div><b>Empty background</b><span>Blank white sheet with a size you choose.</span><div class="sz"><input id="hw" type="number" min="10" value="300"> x <input id="hd" type="number" min="10" value="200"> ft <button class="hx" id="hcgo" style="margin-left:auto;float:none">Create</button></div></div>
+</div>
+<h3>Recent projects</h3><div class="rec" id="hrec"></div></div></div>
+<script>
+(function(){
+var H=document.getElementById("home");if(!H)return;
+function close(){H.classList.remove("on")}
+function fmt(t){try{return new Date(t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}catch(e){return""}}
+function esc2(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function recent(){var box=document.getElementById("hrec");box.innerHTML="";
+var l=vars.slice().sort(function(a,b){return (b.t||0)-(a.t||0)}).slice(0,6);
+if(!l.length){box.innerHTML='<div style="opacity:.6;font-size:13px">Projects you open will appear here.</div>';return}
+l.forEach(function(v){var b=document.createElement("button");b.className="rr";b.innerHTML='<em>'+(v.mode==="plan"?"Plan":"Map")+'</em><span>'+esc2(v.name)+'</span><small>'+fmt(v.t)+'</small>';
+b.onclick=function(){close();switchTo(v.id)};box.appendChild(b)})}
+window.openHome=function(){recent();H.classList.add("on")};
+document.getElementById("homex").onclick=close;
+H.addEventListener("mousedown",function(e){if(e.target===H)close()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&H.classList.contains("on"))close()});
+window.__askScale=false;
+var _spi=setPlanImage;
+setPlanImage=function(url,w,h,keep){_spi(url,w,h,keep);if(window.__askScale){window.__askScale=false;if(plan&&!plan.cal){var b=document.getElementById("ts");if(b&&!b.hidden)setTimeout(function(){b.click()},150)}}};
+document.getElementById("hcplan").onclick=function(){close();document.getElementById("vnp").click();window.__askScale=true;document.getElementById("pf").click()};
+document.getElementById("hcmap").onclick=function(){close();document.getElementById("vnm").click();var q=document.getElementById("q");if(q)setTimeout(function(){q.focus()},200)};
+function blank(){var w=Math.max(10,+document.getElementById("hw").value||300),d=Math.max(10,+document.getElementById("hd").value||200);
+close();document.getElementById("vnp").click();
+var px=3000,cv=document.createElement("canvas");cv.width=px;cv.height=Math.max(200,Math.round(px*d/w));var cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cv.width,cv.height);
+cx.strokeStyle="rgba(0,0,0,.08)";cx.lineWidth=2;var st=px/w*10;for(var x=0;x<=cv.width;x+=st){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,cv.height);cx.stroke()}for(var y=0;y<=cv.height;y+=st){cx.beginPath();cx.moveTo(0,y);cx.lineTo(cv.width,y);cx.stroke()}
+setPlanImage(cv.toDataURL("image/jpeg",0.9),cv.width,cv.height,false);
+plan.wm=w/FTM;plan.hm=d/FTM;plan.cal=true;showPlan();map.fitBounds(planBounds(),{animate:false});save();refresh();gpsMsg("Blank sheet "+w+" x "+d+" ft, 10 ft grid.")}
+document.getElementById("hcgo").onclick=function(e){e.stopPropagation();blank()};
+document.getElementById("hcblank").onclick=function(e){if(e.target.tagName!=="INPUT")blank()};
+var bb=document.getElementById("vgrp");if(bb){var hb=document.createElement("button");hb.id="homebtn";hb.textContent="Home";hb.title="New project / recent projects";hb.onclick=window.openHome;bb.parentNode.insertBefore(hb,bb)}
+setTimeout(window.openHome,300);
+})();
+</script>
 </body></html>
 
