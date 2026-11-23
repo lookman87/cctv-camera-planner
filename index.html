@@ -1863,7 +1863,7 @@ function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;"
 function tx(el){return(el.textContent||"").replace(/\s+/g," ").trim()}
 function li(t,c){return'<li'+(c?' class="'+c+'"':'')+'>'+esc(t)+'</li>'}
 function compact(){if(ps.firstElementChild&&ps.firstElementChild.classList.contains("cmpw"))return;
-var lens=!!(window.rs&&rs.labels),eq=[],cab=[],len=[];
+var lens=false,eq=[],cab=[],len=[];if(!window.__layBak){window.__layBak={c:LAY.cat6,f:LAY.fib};LAY.cat6=0;LAY.fib=0;try{drawLines()}catch(e){}}
 Array.prototype.forEach.call(ps.querySelectorAll(".camlist"),function(g){
  var kids=Array.prototype.slice.call(g.children),tb=g.querySelector("table");
  var txt=tx(g);
@@ -1885,9 +1885,9 @@ Array.prototype.forEach.call(ps.querySelectorAll(".camlist"),function(g){
  cab.push('<h3>'+esc(head.replace(/\s*·.*$/,"").replace(/\s*\(fiber from each IDF[^)]*\)/,""))+'</h3><ul>'+sec.join("")+'</ul>'+(/IDF/.test(head)&&/Cat6/.test(head)?'<p class="sub">'+esc(head.replace(/^.*·\s*/,""))+'</p>':''))});
 var date=(document.getElementById("pdate")||{}).textContent||"";
 var w=document.createElement("div");w.className="cmpw";
-w.innerHTML='<h2>Equipment list</h2><p class="sub">'+esc(date)+'</p><ul>'+eq.join("")+'</ul>'+cab.join("")+(len.length?'<h3>Cable with spare</h3><ul>'+len.join("")+'</ul>':'');
+w.innerHTML='<h2>Equipment list</h2><p class="sub">'+esc(date)+'</p><ul>'+eq.join("")+'</ul>';
 ps.innerHTML="";ps.appendChild(w)}
-new MutationObserver(function(){compact()}).observe(ps,{childList:true});
+new MutationObserver(function(){compact()}).observe(ps,{childList:true});window.addEventListener("afterprint",function(){var b=window.__layBak;if(!b)return;window.__layBak=null;LAY.cat6=b.c;LAY.fib=b.f;try{drawLines()}catch(e){}});
 })();
 </script>
 </body></html>
