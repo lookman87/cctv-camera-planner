@@ -1751,5 +1751,42 @@ var bb=document.getElementById("vgrp");if(bb){var hb=document.createElement("but
 setTimeout(window.openHome,300);
 })();
 </script>
+<style id="szcss">
+#szbar{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:1200;display:none;align-items:center;gap:10px;padding:8px 14px;border-radius:14px;background:var(--card,#fff);color:var(--fg,#111);border:1px solid var(--bd,rgba(0,0,0,.1));box-shadow:0 8px 30px rgba(0,0,0,.25);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:600 12px -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif}
+#szbar.on{display:flex}#szbar input[type=range]{width:130px}#szbar label{display:flex;align-items:center;gap:5px;font-weight:500;cursor:pointer}
+#szbar button{border:0;border-radius:8px;padding:4px 9px;background:var(--fill,rgba(120,120,128,.16));color:inherit;cursor:pointer;font:600 12px inherit}
+#szbar #szv{min-width:38px;text-align:right;color:var(--acc,#007aff)}
+</style>
+<div id="szbar"><span id="szt">Size</span><input type="range" id="szr" min="0.4" max="4" step="0.1" value="1"><span id="szv">1.0x</span><label><input type="checkbox" id="szf">Keep size when zooming</label><button id="szx" title="Back to default">Reset</button></div>
+<script>
+(function(){
+var bar=document.getElementById("szbar"),rg=document.getElementById("szr"),vv=document.getElementById("szv"),fx=document.getElementById("szf");
+function cur(){if(!sel)return null;var t=sel.t,id=sel.id,o=null,key=null;
+if(t==="p"){o=node(id);key=id}else if(t==="a"){o=camById(id);key="c"+id}else if(t==="o"){o=office;key=0}
+else if(t==="cab"){o=cabById(id);key="cab"+id}else if(t==="srv"){o=srvById(id);key="srv"+id}
+else if(t==="n"){o=node("n"+id);key="n"+id}else if(t==="xf"){o=xfById(id);key="xf"+id}
+else if(t==="ap"){o=apById(id);key="ap"+id}else if(t==="x"){o=cubById(id);key="x"+id}
+return o?{o:o,key:key}:null}
+function base(n){return parseFloat(map.getContainer().style.getPropertyValue(n))||1}
+function applySizes(){var m=map.getContainer();
+var S=base("--s"),P=base("--p"),C=base("--c"),Hh=base("--h"),T=base("--t");
+function one(key,o){var mk=markers[key];if(!mk||!mk._icon||!o)return;var el=mk._icon,k=o.sz||1,f=o.fx;
+if(k===1&&!f){["--s","--p","--c","--h","--t"].forEach(function(v){el.style.removeProperty(v)});return}
+el.style.setProperty("--s",((f?1:S)*k).toFixed(3));el.style.setProperty("--p",((f?.7:P)*k).toFixed(3));el.style.setProperty("--c",((f?1:C)*k).toFixed(3));el.style.setProperty("--h",((f?1:Hh)*k).toFixed(3));el.style.setProperty("--t",((f?1:T)*k).toFixed(3))}
+poles.forEach(function(p){one(p.id,p)});if(office)one(0,office);
+cams.forEach(function(c){one("c"+c.id,c)});cabs.forEach(function(c){one("cab"+c.id,c)});srvs.forEach(function(c){one("srv"+c.id,c)});
+nets.forEach(function(c){one("n"+c.id,c)});xfs.forEach(function(c){one("xf"+c.id,c)});aps.forEach(function(c){one("ap"+c.id,c)});cubs.forEach(function(c){one("x"+c.id,c)})}
+window.applySizes=applySizes;
+function showBar(){var c=cur();if(!c){bar.classList.remove("on");return}var k=c.o.sz||1;rg.value=k;vv.textContent=k.toFixed(1)+"x";fx.checked=!!c.o.fx;bar.classList.add("on")}
+rg.oninput=function(){var c=cur();if(!c)return;var k=+rg.value;if(Math.abs(k-1)<.05)delete c.o.sz;else c.o.sz=k;vv.textContent=k.toFixed(1)+"x";applySizes()};
+rg.onchange=function(){save()};
+fx.onchange=function(){var c=cur();if(!c)return;if(fx.checked)c.o.fx=1;else delete c.o.fx;save();applySizes()};
+document.getElementById("szx").onclick=function(){var c=cur();if(!c)return;delete c.o.sz;delete c.o.fx;rg.value=1;vv.textContent="1.0x";fx.checked=false;save();applySizes()};
+var _sc=scaleCSS;scaleCSS=function(){_sc();applySizes()};
+var _rf=refresh;refresh=function(){_rf();applySizes();showBar()};
+map.on("zoom",applySizes);map.on("zoomend",applySizes);
+showBar();
+})();
+</script>
 </body></html>
 
