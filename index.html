@@ -924,15 +924,19 @@ if(mode==="plan"&&planLayer){var pb=planBounds();pts.push(pb.getNorthEast());pts
 if(pts.length)map.fitBounds(pts,{padding:[40,40]})};
 var pv=null;
 document.getElementById("pdf").onclick=function(){var mc0=map.getContainer(),sw=mc0.clientWidth,sh=mc0.clientHeight,rs=document.documentElement.style;
-pv={c:map.getCenter(),z:map.getZoom()};
+pv={c:map.getCenter(),z:map.getZoom()};var pc=null;
+if(mode==="plan"&&plan&&planImg){var pb=planBounds();function ex(o){if(o&&o.lat!=null&&o.lng!=null)pb.extend([o.lat,o.lng])}
+[poles,cams,cabs,aps,nets,xfs,srvs,cubs,bars].forEach(function(l){(l||[]).forEach(ex)});ex(office);(fences||[]).forEach(function(f){(f.pts||[]).forEach(ex)});
+pb=pb.pad(0.06);var pa=map.project(pb.getNorthWest(),pv.z),pz=map.project(pb.getSouthEast(),pv.z);
+sw=Math.max(300,Math.round(pz.x-pa.x));sh=Math.max(200,Math.round(pz.y-pa.y));pc=pb.getCenter()}
 function setPf(f){rs.setProperty("--pf",f);rs.setProperty("--pw",Math.floor(sw*f)+"px");rs.setProperty("--ph",Math.floor(sh*f)+"px")}
 rs.setProperty("--sw",sw+"px");rs.setProperty("--sh",sh+"px");
 document.getElementById("psum").innerHTML=document.getElementById("info").innerHTML;
 document.getElementById("pdate").textContent=(mode==="plan"?"Floor plan, ":"Camera pole plan, ")+new Date().toLocaleString();
 if(window.rptHead)window.rptHead();var f1=Math.min(990/sw,2.5);setPf(f1);
 document.body.classList.add("printing");
-setTimeout(function(){var ph=document.getElementById("psum").offsetHeight;setPf(Math.min(f1,Math.max(.2,(735-ph)/sh)));
-map.invalidateSize(false);map.setView(pv.c,pv.z,{animate:false});
+setTimeout(function(){var ph=document.getElementById("psum").offsetHeight;setPf(Math.min(f1,Math.max(.2,(735-ph)/sh)));for(var it=0;it<3;it++){ph=document.getElementById("psum").offsetHeight;setPf(Math.min(f1,Math.max(.2,(700-ph)/sh)))}
+map.invalidateSize(false);map.setView(pc||pv.c,pv.z,{animate:false});
 var fired=false;function go(){if(fired)return;fired=true;window.print()}
 if(mode==="plan"){setTimeout(go,800);return}
 map.removeLayer(sat);satHi.addTo(map);
