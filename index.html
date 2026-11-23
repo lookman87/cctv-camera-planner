@@ -1791,5 +1791,35 @@ map.on("zoom",applySizes);map.on("zoomend",applySizes);
 showBar();
 })();
 </script>
+<script>
+(function(){
+function byId(a,i){for(var k=0;k<a.length;k++)if(a[k].id===i)return a[k];return null}
+function collect(){var out=[];
+function add(arr,get,key,skip){(arr||[]).forEach(function(i){var o=get(i);if(o&&!(skip&&skip(o)))out.push({o:o,key:key(i),pole:key===null})})}
+add(psel,function(i){return node(i)},function(i){return i});
+add(msel,camById,function(i){return "c"+i},function(c){return c.pole!=null&&c.pole!==0});
+add(bsel,function(i){return byId(bars,i)},function(i){return "b"+i});
+add(cabsel,cabById,function(i){return "cab"+i});add(apsel,apById,function(i){return "ap"+i});
+add(xsel,cubById,function(i){return "x"+i});add(nsel,function(i){return byId(nets,i)},function(i){return "n"+i});
+add(tsel,xfById,function(i){return "xf"+i});add(ssel,srvById,function(i){return "srv"+i});
+return out}
+var G=null;
+function hookOne(key){var m=markers[key];if(!m||m.__gd)return;m.__gd=1;
+m.on("dragstart",function(){var items=collect(),fs=(fsel||[]).map(function(i){return byId(fences,i)}).filter(Boolean);
+var me=items.filter(function(x){return String(x.key)===String(key)})[0];
+if(!me||items.length+fs.length<2){G=null;return}
+items.forEach(function(x){x.s0={lat:x.o.lat,lng:x.o.lng}});
+fs.forEach(function(f){f.__s0=f.pts.map(function(p){return{lat:p.lat,lng:p.lng}})});
+G={items:items,fs:fs,me:me}});
+m.on("drag",function(){if(!G)return;var q=m.getLatLng(),dl=q.lat-G.me.s0.lat,dg=q.lng-G.me.s0.lng;
+G.items.forEach(function(x){if(x===G.me)return;x.o.lat=x.s0.lat+dl;x.o.lng=x.s0.lng+dg;var mm=markers[x.key];if(mm)mm.setLatLng(L.latLng(x.o.lat,x.o.lng))});
+G.fs.forEach(function(f){f.pts.forEach(function(p,i){p.lat=f.__s0[i].lat+dl;p.lng=f.__s0[i].lng+dg})});
+var movedPoles={};G.items.forEach(function(x){if(typeof x.key==="number")movedPoles[x.key]=1});
+cams.forEach(function(c){if(c.pole!=null&&movedPoles[c.pole])placeCam(c)});
+drawLines()});
+m.on("dragend",function(){if(!G)return;G.fs.forEach(function(f){delete f.__s0});G=null;save();refresh()})}
+var _dm=drawMarkers;drawMarkers=function(){_dm();Object.keys(markers).forEach(function(k){if(/^(\d+|c\d+|b\d+|cab\d+|ap\d+|x\d+|n\d+|xf\d+|srv\d+)$/.test(k)&&k!=="0")hookOne(k)})};
+})();
+</script>
 </body></html>
 
