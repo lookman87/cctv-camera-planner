@@ -1,10 +1,19 @@
 # CCTV Camera Planner
 
-**Free CCTV / IP security camera placement planner.** Draw cameras, poles, IDFs and cable runs on a satellite map or a floor plan, see field of view and DORI coverage, check PoE and cable-length limits, and export a priced estimate and a client-ready PDF report. Single HTML file, no server, no account. Also available as a portable Windows `.exe`.
+**Free CCTV camera layout tool for installers and integrators.** Place cameras and poles on a satellite map or a floor plan, see field of view and DORI coverage, check cable and PoE limits, and print a clean PDF for the client. One HTML file. No account, no server, no camera limit.
 
-![Map view](docs/map.png)
+[**Open it in your browser**](https://lookman87.github.io/cctv-camera-planner/) · [Light Survey tool](https://lookman87.github.io/cctv-camera-planner/light.html) · [Windows .exe](../../releases) · [Changelog](CHANGELOG.md) · [Roadmap](ROADMAP.md)
 
-Keywords: CCTV design tool, security camera layout, camera field of view calculator, DORI calculator, video surveillance site survey, PoE budget, Cat6 cable length, IP camera bill of materials, camera pole planner.
+![Start screen](docs/start.png)
+![Floor plan with cameras, IDFs and Cat6 runs](docs/map.png)
+
+## Why this one
+
+- **Free and unlimited.** Many online tools cap the free plan at a few cameras. This one does not.
+- **Private.** Everything stays in your browser or in the desktop app. Nothing is uploaded.
+- **Built by an installer.** Made at DAGTECH from real jobs: poles, IDF cabinets, Cat6 and fiber runs, Ubiquiti links, voltage drop, switch and NVR checks.
+- **Light Survey included.** A separate page for night-lighting surveys: log lux readings on a map and get a coverage heat map.
+- **Works offline** as a portable Windows app.
 
 ## Features
 
@@ -27,8 +36,18 @@ Keywords: CCTV design tool, security camera layout, camera field of view calcula
 - **Multiple maps and plans** per project, undo/redo, copy/paste, select area, present mode, dark mode.
 - Data is saved locally in your browser (or in the desktop app).
 
-![Network and PoE](docs/network.png)
-![Estimate](docs/estimate.png)
+
+### What's new
+
+- Start screen with recent projects and quick start choices
+- Per-object icon size, plus an optional "keep size when zooming"
+- Select an area, copy and paste cameras, then drag the whole group at once
+- Camera library now includes LTS models next to Axis and Hikvision
+- PDF export redone: full-page plan, then an equipment list on its own page (for example "10 x 2.8 mm / 12 x 108° / 12 switches"), without cable lengths unless you ask
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+![Selected camera with size bar](docs/select.png)
 
 ## Use it
 
@@ -67,6 +86,22 @@ Shortcuts: right-click switches to Move, Esc closes panels, Ctrl+Z / Ctrl+Y undo
 - Satellite imagery is loaded from Esri and needs internet. IP-based location is approximate.
 - Prices in the estimate start at zero: enter your own.
 - Cloud sync and auto-update are not included.
+
+## FAQ
+
+**Does it cost anything?** No. MIT license.
+
+**Where is my data?** In your browser's local storage (or the desktop app). Export a project file to back it up or move it.
+
+**Is the cable length exact?** It is an estimate: straight or 90° runs plus drops and slack. Field results vary with routing, so treat it as a planning number and tune the drop, slack and end allowance values.
+
+**Can I import a PDF floor plan?** Yes, PDF or image, then set the scale with two points and a known distance.
+
+**Something is wrong or missing.** Open an [issue](../../issues). Camera models with a datasheet link are the easiest to add.
+
+## Contributing
+
+Bug reports, camera models and screenshots of real jobs are all welcome. The app is a single `index.html`, so a pull request is usually a small diff. Run `node scripts/make-screens.js` to regenerate the README images, and the CI smoke test must pass.
 
 ## Tech
 
